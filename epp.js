@@ -3,13 +3,15 @@ window.onhashchange = ___.hashchange;
 
 var todos = ['Hello', 'World'];
 
-function todo(){
-  return `
+var todo = () => `
 <nav>To-Do List</nav>
-<ol>
- ${___(todos, todo => `<li>${todo}</li>`)}
-</ol>
-`
-}
+<div class="main">
+  <ol>
+    ${___(todos, todo => `
+    <li>${todo}</li>
+    `)}
+  </ol>
+</div>
+`;
 
 window.onload = () => ___.hashchange('#todo');
