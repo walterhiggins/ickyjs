@@ -2,7 +2,7 @@ var todos = ['Hello', 'World'];
 
 var todo = () => `
 <nav>To-Do List</nav>
-<div class="main">
+<div id="main">
   <ol>
     ${___(todos, todo => `
     <li>${todo}</li>
