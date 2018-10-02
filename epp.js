@@ -1,5 +1,5 @@
 
-window.onhashchange = ___.hashchange('#todo');
+window.onhashchange = ___.hashchange;
 
 var todos = ['Hello', 'World'];
 
@@ -12,4 +12,4 @@ function todo(){
 `
 }
 
-window.onload = () => ___.update('#___root', todo);
+window.onload = () => ___.hashchange('#todo');
