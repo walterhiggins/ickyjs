@@ -24,6 +24,9 @@ ${___(todos, item => `
 `;
   return `
 <nav>To-Do List</nav>
+<form onsubmit="${__( (text) => {add(text); update('#main', list)} )}(this.text)">
+  <input type="text" name="text"/><input type="submit"/>
+</form>
 <div id="main">
   ${list()}
 </div>
