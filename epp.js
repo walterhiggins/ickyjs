@@ -24,11 +24,13 @@ ${___(todos, item => `
 `;
   return `
 <nav>To-Do List</nav>
-<form onsubmit="${___( (text) => {add(text); ___.update('#main', list)} )}(this.text)">
-  <input type="text" name="text"/><input type="submit"/>
-</form>
-<div id="main">
-  ${list()}
+<div class="wrapper">
+  <form onsubmit="${___( (text) => {add(text); ___.update('#main', list)} )}(this.text); return false;">
+    <input type="text" name="text"/><input type="submit"/>
+  </form>
+  <div id="main">
+    ${list()}
+  </div>
 </div>
 `;
 }
