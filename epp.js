@@ -1,6 +1,3 @@
-
-window.onhashchange = ___.hashchange;
-
 var todos = ['Hello', 'World'];
 
 var todo = () => `
@@ -15,3 +12,4 @@ var todo = () => `
 `;
 
 window.onload = () => ___.hashchange('#todo');
+window.onhashchange = ___.hashchange;
