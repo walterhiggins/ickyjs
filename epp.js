@@ -2,7 +2,7 @@ function load(){
    return JSON.parse(localStorage.getItem('todos'));
 }
 function save(){
-   localStorage.setItem(JSON.stringify(todos));
+   localStorage.setItem('todos', JSON.stringify(todos));
 }
 var todos = [];
 var uid = 0;
