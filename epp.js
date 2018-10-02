@@ -14,24 +14,21 @@ function add(text){
 function todo(){
   var list = () => `
 <ol>
-    ${___(todos, todo => `
-    <li>${todo} 
-      <input 
-        type="checkbox" 
-        onchange="${__(
-          (done) => {
-            todo.done = done; ___.update('#main',list);
-          } )}(this.checked)"/>
-    </li>
-    `)}
-  </ol>
+${___(todos, item => `
+  <li>${item.text} 
+    <input ${item.done?'checked':''} type="checkbox" 
+      onchange="${___( done => item.done = done ) }(this.checked)"/>
+  </li>
+ `)}
+</ol>
 `;
-  `
+  return `
 <nav>To-Do List</nav>
 <div id="main">
   ${list()}
 </div>
 `;
+}
 
 window.onload = () => ___.hashchange('#todo');
 window.onhashchange = ___.hashchange;
