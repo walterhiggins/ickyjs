@@ -29,26 +29,29 @@
   `;
 
   /*
+    Todo Item
+  */
+  function todoItem(todo) {
+    const onChange = el => {
+      todo.done = el.checked;
+      icky.update("#itemsLeft", itemsLeft);
+      icky.update("#list", todoList);
+    };
+    return `
+    <li class="${todo.done ? "completed" : ""}">
+      <input type="checkbox"
+        ${todo.done ? "checked" : ""} 
+        onchange="${icky.fname(onChange)}(this)" />
+      <label>${todo.text}</label>
+    </li>
+      `;
+  }
+  /*
     Todo List
    */
   const todoList = () => `
   <ol>
-  ${icky.map(
-    todos.filter(visible),
-    todo => `
-    <li class="${todo.done ? "completed" : ""}">
-      <input type="checkbox"
-             ${todo.done ? "checked" : ""}
-             onchange="${icky.fname(el => {
-               todo.done = el.checked;
-               icky.update("#itemsLeft", itemsLeft);
-               icky.update("#list", todoList);
-             })}(this)"
-       />
-       <label>${todo.text}</label>
-    </li>
-  `
-  )}
+  ${icky.map(todos.filter(visible), todoItem)}
   </ol>`;
 
   /*
