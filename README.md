@@ -27,7 +27,8 @@ app.js
     ${icky.map(todos, todo => `
     <li>
       <input type="checkbox" 
-             onchange="${icky.fname(done => todo.done = done)}(this.checked)"> 
+             onchange="${icky.fname(done => todo.done = done)}(this.checked)"
+             ${todo.done?"checked":""} /> 
       ${todo.text}
     </li>`)
   </ol>
