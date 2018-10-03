@@ -21,7 +21,11 @@ app.js
 
 ```javascript
 (function(exports) {
-  var todos = [{ done: false, text: "Brush Teeth" }, { done: true, text: "Comb Hair" }];
+  var todos = [
+    { done: true, text: "Wake Up" }, 
+    { done: true, text: "Fall out of Bed" },
+    { done: false, text: "Drag a comb across my head" },
+  ];
   const todoView = () => `
   <ol>
     ${icky.map(
