@@ -21,18 +21,21 @@ app.js
 
 ```javascript
 (function(exports) {
-  var todos = [{ done: false, text: 'Brush Teeth'}, {done: true, text: 'Comb Hair'} ];
+  var todos = [{ done: false, text: "Brush Teeth" }, { done: true, text: "Comb Hair" }];
   const todoView = () => `
   <ol>
-    ${icky.map(todos, todo => `
+    ${icky.map(
+      todos,
+      todo => `
     <li>
       <input type="checkbox" 
-             onchange="${icky.fname(done => todo.done = done)}(this.checked)"
-             ${todo.done?"checked":""} /> 
+             onchange="${icky.fname(done => (todo.done = done))}(this.checked)"
+             ${todo.done ? "checked" : ""} /> 
       ${todo.text}
-    </li>`)
+    </li>`
+    )}
   </ol>
 `;
-  exports.onload = () => icky.update('#ickyroot', todoView);
+  exports.onload = () => icky.update("#ickyroot", todoView);
 })(window);
 ```
