@@ -1,0 +1,12 @@
+body {
+    margin: 1em;
+    font-family: 'Fira Sans', sans-serif;
+    font-size: 1rem;
+}
+input[type="submit"], input[type="text"] {
+    padding: 0.5em;
+}
+li.completed label {
+    color: lightgray;
+    text-decoration: line-through;
+}
