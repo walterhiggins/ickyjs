@@ -46,6 +46,7 @@
     </li>
       `;
   }
+
   /*
     Todo List
    */
@@ -55,41 +56,55 @@
   </ol>`;
 
   /*
+    handle new ToDo addition
+   */
+  const onNewTodo = icky.fname(input => {
+    addTodo(input.value);
+    input.value = "";
+    icky.update("#list", todoList);
+    icky.update("#itemsLeft", itemsLeft);
+    return false;
+  });
+
+  /*
+    handle change in visibility
+   */
+  const onVisibilityChange = icky.fname(v => {
+    visibility = v;
+    icky.update("#list", todoList);
+  });
+
+  /*
     Complete view
    */
   const todoView = () => `
   <h1>To-Do List</h1>
-  <form onsubmit="return ${icky.fname(text => {
-    addTodo(text);
-    icky.update("#list", todoList);
-    icky.update("#itemsLeft", itemsLeft);
-    return false;
-  })}(this.todo.value)">
 
+  <form onsubmit="return ${onNewTodo}(this.todo)">
     <input type="text" placeholder="What needs to be done?" name="todo"/>
-
     <input type="submit"/>
-
   </form>
+
   <div id="list">
     ${todoList()}  
   </div>
 
 
-  <form onchange="${icky.fname(v => {
-    visibility = v;
-    icky.update("#list", todoList);
-  })}(this.visible.value)">
+  <form onchange="${onVisibilityChange}(this.visible.value)">
 
     <span id="itemsLeft">${itemsLeft()}</span>
+
     <input type="radio" name="visible" value="All" checked/>
     <label for="All">All</label>
+
     <input type="radio" name="visible" value="Pending" />
     <label for="Pending">Active</label>
+
     <input type="radio" name="visible" value="Completed" />
     <label for="Completed">Completed</label>
 
   </form>
-  `;
+      `;
+
   icky.update("#ickyroot", todoView);
 })(window);
