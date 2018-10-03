@@ -24,7 +24,12 @@ app.js
   var todos = [{ done: false, text: 'Brush Teeth'}, {done: true, text: 'Comb Hair'} ];
   const todoView = () => `
   <ol>
-    ${icky.map(todos, todo => `<li><input type="checkbox" onchange="${icky.fname(done => todo.done = done)}(this.checked)"> ${todo.text}</li>`)
+    ${icky.map(todos, todo => `
+    <li>
+      <input type="checkbox" 
+             onchange="${icky.fname(done => todo.done = done)}(this.checked)"> 
+      ${todo.text}
+    </li>`)
   </ol>
 `;
   exports.todos = todoView;
