@@ -21,25 +21,38 @@
   /*
     Items left label
    */
-  const itemsLeft = () => `
-  ${todos.filter(item => !item.done).length} Items Left
-  `;
+  const itemsLeft = () =>
+    `${todos.filter(item => !item.done).length} Items Left`;
 
   /*
     Todo Item
   */
   function todoItem(todo) {
-    const onChange = el => {
-      todo.done = el.checked;
+    const onToggleItemStatus = icky.fname(() => {
+      todo.done = !todo.done;
       icky.update("#itemsLeft", itemsLeft);
       icky.update("#list", todoList);
-    };
+    });
+    const onRemove = icky.fname(() => {
+      todos.splice(todos.indexOf(todo), 1);
+      icky.update("#itemsLeft", itemsLeft);
+      icky.update("#list", todoList);
+    });
+    const onMouseOut = icky.fname(el => {
+      el.querySelector("button").className = "";
+    });
+    const onMouseOver = icky.fname(el => {
+      el.querySelector("button").className = "visible";
+    });
     return `
-    <li class="${todo.done ? "completed" : ""}">
+    <li onmouseout="${onMouseOut}(this)"
+        onmouseover="${onMouseOver}(this)" 
+        class="${todo.done ? "completed" : ""}">
       <input type="checkbox"
         ${todo.done ? "checked" : ""} 
-        onchange="${icky.fname(onChange)}(this)" />
+        onchange="${onToggleItemStatus}()" />
       <label>${todo.text}</label>
+      <button onclick="${onRemove}()">x</button>
     </li>
       `;
   }
@@ -47,10 +60,8 @@
   /*
     Todo List
    */
-  const todoList = () => `
-  <ol>
-  ${icky.map(todos.filter(visible), todoItem)}
-  </ol>`;
+  const todoList = () =>
+    `<ol>${icky.map(todos.filter(visible), todoItem)}</ol>`;
 
   /*
     handle new ToDo addition

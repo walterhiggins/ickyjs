@@ -6,7 +6,25 @@ body {
 input[type="submit"], input[type="text"] {
     padding: 0.5em;
 }
+ol {
+    border: 1px solid silver;
+    padding: 0em;
+    list-style-type: none;
+    width: 30em;
+}
+li {
+    padding: 0.5em;
+    border-bottom: 1px solid silver;
+}
+li button {
+    float: right;
+    display: none;
+}
 li.completed label {
     color: lightgray;
     text-decoration: line-through;
+}
+
+.visible {
+    display: inline;
 }
