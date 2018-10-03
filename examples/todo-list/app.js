@@ -6,9 +6,6 @@
     { text: "Comb Hair", done: false },
     { text: "Go Downstairs", done: false }
   ];
-  const addTodo = text => {
-    todos.push({ text: text, done: false });
-  };
   let visibility = "All";
   const visible = item => {
     switch (visibility) {
@@ -59,7 +56,7 @@
     handle new ToDo addition
    */
   const onNewTodo = icky.fname(input => {
-    addTodo(input.value);
+    todos.push({ text: input.value, done: false });
     input.value = "";
     icky.update("#list", todoList);
     icky.update("#itemsLeft", itemsLeft);
