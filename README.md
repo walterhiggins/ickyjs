@@ -32,6 +32,6 @@ app.js
     </li>`)
   </ol>
 `;
-  exports.todos = todoView;
+  exports.onload = () => icky.update('#ickyroot', todoView);
 })(window);
 ```
