@@ -26,20 +26,22 @@ app.js
     { done: true, text: "Fall out of Bed" },
     { done: false, text: "Drag a comb across my head" },
   ];
+
   const todoView = () => `
   <ol>
-    ${icky.map(
-      todos,
-      todo => `
+    ${icky.map(todos, todoItem)}
+  </ol>`;
+
+  const todoItem = todo => {
+    const onToggleStatus = icky.fname(el => {
+      todo.done = el.checked;
+    });
+    return `
     <li>
-      <input type="checkbox" 
-             onchange="${icky.fname(done => (todo.done = done))}(this.checked)"
-             ${todo.done ? "checked" : ""} /> 
+      <input type="checkbox" onchange="${onToggleStatus}(this)" ${todo.done ? "checked" : ""} /> 
       ${todo.text}
-    </li>`
-    )}
-  </ol>
-`;
+    </li>`;
+  };
   exports.onload = () => icky.update("#ickyroot", todoView);
 })(window);
 ```
