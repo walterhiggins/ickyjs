@@ -13,7 +13,7 @@
         return true;
       case "Completed":
         return item.done;
-      case "Pending":
+      case "Active":
         return !item.done;
     }
   };
@@ -23,7 +23,37 @@
    */
   const itemsLeft = () =>
     `${todos.filter(item => !item.done).length} Items Left`;
-
+  /*
+    A label which when double-clicked becomes an editable field
+   */
+  function inPlaceEditor(getter, setter) {
+    const activate = icky.fname(function(label) {
+      var container = label.parentElement;
+      var oldValue = label.innerText;
+      // Turn text input back into a label
+      const deactivate = () => (container.innerHTML = textLabel());
+      const save = input => {
+        setter(input.value);
+        deactivate();
+      };
+      const keydown = input => {
+        let action = {
+          /* TAB */ "9": save,
+          /* ENT */ "13": save,
+          /* ESC */ "27": deactivate
+        }[window.event.keyCode];
+        action ? action(input) : null;
+      };
+      container.innerHTML = `
+      <input type="text" 
+             onblur="${icky.fname(deactivate)}()"
+             onkeydown="${icky.fname(keydown)}(this)" 
+             value="${oldValue}">`;
+    });
+    const textLabel = () =>
+      `<label ondblclick="${activate}(this)">${getter()}</label>`;
+    return `<span>${textLabel()}</span>`;
+  }
   /*
     Todo Item
   */
@@ -44,6 +74,7 @@
     const onMouseOver = icky.fname(el => {
       el.querySelector("button").className = "visible";
     });
+
     return `
     <li onmouseout="${onMouseOut}(this)"
         onmouseover="${onMouseOver}(this)" 
@@ -51,22 +82,21 @@
       <input type="checkbox"
         ${todo.done ? "checked" : ""} 
         onchange="${onToggleItemStatus}()" />
-      <label>${todo.text}</label>
+      ${inPlaceEditor(() => todo.text, v => (todo.text = v))}
       <button onclick="${onRemove}()">x</button>
     </li>
       `;
   }
 
-  /*
-    Todo List
-   */
+  // Todo List
   const todoList = () =>
     `<ol>${icky.map(todos.filter(visible), todoItem)}</ol>`;
 
-  /*
-    handle new ToDo addition
-   */
+  // Handle new ToDo addition
   const onNewTodo = icky.fname(input => {
+    if (input.value.trim().length == 0) {
+      return false;
+    }
     todos.push({ text: input.value, done: false });
     input.value = "";
     icky.update("#list", todoList);
@@ -76,11 +106,27 @@
 
   /*
     handle change in visibility
-   */
-  const onVisibilityChange = icky.fname(v => {
+  */
+  const changeVisibility = v => {
     visibility = v;
     icky.update("#list", todoList);
-  });
+    icky.update("#filterList", filterList);
+  };
+  const onVisibilityChange = icky.fname(changeVisibility);
+
+  const filterItem = (href, type) => `
+  <li>
+    <a href="${href}" 
+       class="${visibility == "${type}" ? "selected" : ""}" 
+       onclick="${onVisibilityChange}('${type}')">${type}</a>
+  </li>`;
+
+  const filterList = () => `
+  <ul class="filters">
+    ${filterItem("#/", "All")}
+    ${filterItem("#/active", "Active")}
+    ${filterItem("#/completed", "Completed")}
+  </ul>`;
 
   /*
     Complete view
@@ -97,22 +143,18 @@
     ${todoList()}  
   </div>
 
-
-  <form onchange="${onVisibilityChange}(this.visible.value)">
-
-    <span id="itemsLeft">${itemsLeft()}</span>
-
-    <input type="radio" name="visible" value="All" checked/>
-    <label for="All">All</label>
-
-    <input type="radio" name="visible" value="Pending" />
-    <label for="Pending">Active</label>
-
-    <input type="radio" name="visible" value="Completed" />
-    <label for="Completed">Completed</label>
-
-  </form>
-      `;
+  <div id="filterList">
+    ${filterList()}
+  </div>`;
 
   icky.update("#ickyroot", todoView);
+
+  var param = location.hash.split("/")[1];
+  var action = {
+    active: () => changeVisibility("Active"),
+    completed: () => changeVisibility("Completed")
+  }[param];
+  if (action) {
+    action();
+  }
 })(window);

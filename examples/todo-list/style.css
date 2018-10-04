@@ -28,3 +28,18 @@ li.completed label {
 .visible {
     display: inline;
 }
+
+.filters {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.filters li {
+    display: inline;
+}
+.filters li a {
+    padding: 0.3em;
+}
+.filters li a.selected {
+    border: 1px solid silver;
+}
