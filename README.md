@@ -140,7 +140,7 @@ It's not big and it's not clever.
 
 ### icky()
 
-All 3 of the above functions can also be invoked simply as `icky()` . `icky()` overloads all 3 functions so instead of writing:
+All 3 of the above functions can also be invoked simply as `icky()` because the `icky()` function overloads all 3 functions so instead of writing:
 
 ```javascript
 var cart = ['Butter', 'Milk', 'Eggs', 'Salt'];
@@ -148,7 +148,11 @@ icky.update('#root', () => {
   const emptyCartOnClick = icky.fname(() => {
     cart.splice(0,cart.length);
   });
-  return `<ol>${icky.map(cart, item => `<li>${item}</li>`)}</ol><button onclick="${emptyCartOnClick}()">Empty Cart</button>`;
+  return `
+  <ol>
+    ${icky.map(cart, item => `<li>${item}</li>`)}
+  </ol>
+  <button onclick="${emptyCartOnClick}()">Empty Cart</button>`;
 });
 ```
 
@@ -160,7 +164,11 @@ icky('#root', () => {
   const emptyCartOnClick = icky(() => {
     cart.splice(0,cart.length);
   });
-  return `<ol>${icky(cart, item => `<li>${item}</li>`)}</ol><button onclick="${emptyCartOnClick}()">Empty Cart</button>`;
+  return `
+  <ol>
+    ${icky(cart, item => `<li>${item}</li>`)}
+  </ol>
+  <button onclick="${emptyCartOnClick}()">Empty Cart</button>`;
 });
 ```
 
