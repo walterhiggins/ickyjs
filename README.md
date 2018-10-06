@@ -56,10 +56,10 @@ ES6 Template literals make writing HTML in Javascript easier. icky.js provides j
   var shoppingCart = [];
   
   function btnRemoveItem( item ){
-    const onClick = icky.fname( btn ){
+    const onClick = icky.fname( btn => {
       item.removed = true;
       btn.disabled = true;
-    };
+    });
     return `<button onclick="${onClick}(this)">Remove</button>`
   }
   ```
