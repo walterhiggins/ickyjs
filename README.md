@@ -49,7 +49,7 @@ app.js
 
 ## Background
 
-ES6 Template literals make writing HTML in Javascript easier. icky.js provides just 3 functions which help in the construction of HTML using template literals.
+ES6 [Template literals][tl] make writing HTML in Javascript easier. icky.js provides just 3 functions which help in the construction of HTML using template literals.
 
 ### icky.fname()
 
@@ -57,11 +57,11 @@ Given a function reference returns a unique name so the function can be used as 
 
 ```javascript
 var shoppingCart = [];
-
+// ...
 function removeItemFromCart (item) {
-  // ...
+  // ... 
 }
-
+// ...
 function btnRemoveItem( item ){
   const onClick = icky.fname( btn => {
     removeItemFromCart( item );
@@ -71,4 +71,17 @@ function btnRemoveItem( item ){
 }
 ```
 This allows bindings between objects and DOM event handlers. Just like Angular's `ng-click`  but without the pain of having to use Angular ;-p
-  
+
+### icky.map()
+
+Given an Array and a function, `icky.map()` will `map()` over the Array calling the function for each item in the array and then `join()` the array using `""`. Why might this be useful? Consider when using ES6 [template literals][tl] to construct a list of items for display on a page in an ordered list:
+
+```html
+<ol>
+  <li>One</li>
+  <li>Two</li>
+  <li>Three</li>
+</ol>
+```
+
+[tl]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
