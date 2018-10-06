@@ -152,4 +152,4 @@ icky.js is not a framework, at <100 lines of code it can barely be called a libr
 [tl]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 [wcp]: https://www.youtube.com/watch?v=3QLmAm9xtnU
 [dic]: https://dictionary.cambridge.org/dictionary/english/icky
-[ex]: ./tree/master/examples
+[ex]: ../../tree/master/examples
