@@ -1,0 +1,8 @@
+{
+  "todos": [
+    { "text": "Wake Up", "done": true },
+    { "text": "Get out of Bed", "done": true },
+    { "text": "Comb Hair", "done": false },
+    { "text": "Go Downstairs", "done": false }
+  ]
+}

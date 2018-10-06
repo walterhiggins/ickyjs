@@ -1,13 +1,44 @@
 (function(exports) {
   "use strict";
   let todos = [];
-  const topic = {
+  const TOPIC = {
     ITEMS_LOADED: "todos/itemsLoaded",
     ITEM_CHANGED: "todos/itemChanged",
     ITEM_REMOVED: "todos/itemRemoved",
     ITEM_ADDED: "todos/itemAdded",
     VISIBILITY_CHANGED: "todos/visibilityChanged"
   };
+  const VISIBILITY_ALL = "All",
+    VISIBILITY_ACTIVE = "Active",
+    VISIBILITY_COMPLETED = "Completed";
+
+  let visibility = VISIBILITY_ALL;
+  const visible = item => {
+    switch (visibility) {
+      case VISIBILITY_ALL:
+        return true;
+      case VISIBILITY_COMPLETED:
+        return item.done;
+      case VISIBILITY_ACTIVE:
+        return !item.done;
+    }
+  };
+
+  //handle change in visibility
+  function changeVisibility(v) {
+    visibility = v;
+    PubSub.publish(TOPIC.VISIBILITY_CHANGED);
+  }
+  // Handle new ToDo addition
+  const onNewTodo = icky.fname(input => {
+    if (input.value.trim().length == 0) {
+      return false;
+    }
+    let newTodo = todos.push({ text: input.value, done: false });
+    input.value = "";
+    PubSub.publish(TOPIC.ITEM_ADDED, newTodo);
+    return false;
+  });
 
   // ------------------------------------------------------------------------
   // TEMPLATES
@@ -43,11 +74,11 @@
   function tTodoItem(todo) {
     const onToggleItemStatus = icky.fname(() => {
       todo.done = !todo.done;
-      PubSub.publish(topic.ITEM_CHANGED, todo);
+      PubSub.publish(TOPIC.ITEM_CHANGED, todo);
     });
     const onRemove = icky.fname(() => {
       todos.splice(todos.indexOf(todo), 1);
-      PubSub.publish(topic.ITEM_REMOVED, todo);
+      PubSub.publish(TOPIC.ITEM_REMOVED, todo);
     });
     const onMouseOut = icky.fname(el => {
       el.querySelector("button").className = "";
@@ -106,9 +137,9 @@
   // Filter links
   const tFilterList = () => `
   <ul class="filters">
-    ${tFilterItem("#/", "All")}
-    ${tFilterItem("#/active", "Active")}
-    ${tFilterItem("#/completed", "Completed")}
+    ${tFilterItem("#/", VISIBILITY_ALL)}
+    ${tFilterItem("#/active", VISIBILITY_ACTIVE)}
+    ${tFilterItem("#/completed", VISIBILITY_COMPLETED)}
   </ul>`;
 
   const onVisibilityChange = icky.fname(changeVisibility);
@@ -122,58 +153,25 @@
   </li>`;
 
   // ------------------------------------------------------------------------
-  // Application Logic
-  // ------------------------------------------------------------------------
-
-  // Handle new ToDo addition
-  const onNewTodo = icky.fname(input => {
-    if (input.value.trim().length == 0) {
-      return false;
-    }
-    let newTodo = todos.push({ text: input.value, done: false });
-    input.value = "";
-    PubSub.publish(topic.ITEM_ADDED, newTodo);
-    return false;
-  });
-
-  let visibility = "All";
-  const visible = item => {
-    switch (visibility) {
-      case "All":
-        return true;
-      case "Completed":
-        return item.done;
-      case "Active":
-        return !item.done;
-    }
-  };
-
-  //handle change in visibility
-  function changeVisibility(v) {
-    visibility = v;
-    PubSub.publish(topic.VISIBILITY_CHANGED);
-  }
-
-  // ------------------------------------------------------------------------
   //  update application views when state changes
   // ------------------------------------------------------------------------
-  PubSub.subscribe(topic.ITEMS_LOADED, () => {
+  PubSub.subscribe(TOPIC.ITEMS_LOADED, () => {
     icky.update("#itemsLeft", tItemsLeft);
     icky.update("#list", tTodoList);
   });
-  PubSub.subscribe(topic.ITEM_CHANGED, () => {
+  PubSub.subscribe(TOPIC.ITEM_CHANGED, () => {
     icky.update("#itemsLeft", tItemsLeft);
     icky.update("#list", tTodoList);
   });
-  PubSub.subscribe(topic.ITEM_REMOVED, () => {
+  PubSub.subscribe(TOPIC.ITEM_REMOVED, () => {
     icky.update("#itemsLeft", tItemsLeft);
     icky.update("#list", tTodoList);
   });
-  PubSub.subscribe(topic.ITEM_ADDED, () => {
+  PubSub.subscribe(TOPIC.ITEM_ADDED, () => {
     icky.update("#itemsLeft", tItemsLeft);
     icky.update("#list", tTodoList);
   });
-  PubSub.subscribe(topic.VISIBILITY_CHANGED, () => {
+  PubSub.subscribe(TOPIC.VISIBILITY_CHANGED, () => {
     icky.update("#filterList", tFilterList);
     icky.update("#list", tTodoList);
   });
@@ -200,7 +198,7 @@
       .then(response => response.json())
       .then(json => {
         todos = json.todos;
-        PubSub.publish(topic.ITEMS_LOADED);
+        PubSub.publish(TOPIC.ITEMS_LOADED);
       });
   })();
 })(window);
