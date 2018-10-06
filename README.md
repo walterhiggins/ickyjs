@@ -146,9 +146,10 @@ The name _Icky_ came to mind as I watched [this video on WebComponents and Polym
 
 I'm not a fan of JS Frameworks and think that you can actually get a lot done using plain new ES6. Application code should _look_ like application code. Breaking up your application code to fit the moulds enforced by the Framework-du-jour is not a good long-term bet.
 
-icky.js is not a framework, at <100 lines of code it can barely be called a library. It's small set of functions are meant to shine a light on what's possible with ES6 Template Literals. If you want to see some examples, start by browsing through the `examples` directory.
+icky.js is not a framework, at <100 lines of code it can barely be called a library. Its small set of functions are meant to shine a light on what's possible with ES6 Template Literals. If you want to see some examples, start by browsing through the [examples][ex] directory.
 
 
 [tl]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 [wcp]: https://www.youtube.com/watch?v=3QLmAm9xtnU
 [dic]: https://dictionary.cambridge.org/dictionary/english/icky
+[ex]: ./tree/master/examples
