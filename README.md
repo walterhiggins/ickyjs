@@ -51,21 +51,24 @@ app.js
 
 ES6 Template literals make writing HTML in Javascript easier. icky.js provides just 3 functions which help in the construction of HTML using template literals.
 
-* `icky.fname( functionRef )` - Given a function reference returns a unique name so the function can be used as an event handler. For example:  
-  ```javascript
-  var shoppingCart = [];
+### icky.fname()
 
-  function removeItemFromCart (item) {
-    // ...
-  }
+Given a function reference returns a unique name so the function can be used as an event handler. For example:  
 
-  function btnRemoveItem( item ){
-    const onClick = icky.fname( btn => {
-      removeItemFromCart( item );
-      btn.disabled = true;
-    });
-    return `<button onclick="${onClick}(this)">Remove</button>`
-  }
-  ```
-  This allows bindings between objects and DOM event handlers. Just like Angular's `ng-click`  but without the pain of having to use Angular ;-p
+```javascript
+var shoppingCart = [];
+
+function removeItemFromCart (item) {
+  // ...
+}
+
+function btnRemoveItem( item ){
+  const onClick = icky.fname( btn => {
+    removeItemFromCart( item );
+    btn.disabled = true;
+  });
+  return `<button onclick="${onClick}(this)">Remove</button>`
+}
+```
+This allows bindings between objects and DOM event handlers. Just like Angular's `ng-click`  but without the pain of having to use Angular ;-p
   
