@@ -72,16 +72,57 @@ function btnRemoveItem( item ){
 ```
 This allows bindings between objects and DOM event handlers. Just like Angular's `ng-click`  but without the pain of having to use Angular ;-p
 
+For the curious: The function is assigned to a distinct new name in the `window.icky.fname` namespace. In the above example, the generated HTML might look something like this:
+
+```html
+<button onclick="icky.fname.fn_15(this)">Remove</button>
+```
+
 ### icky.map()
 
 Given an Array and a function, `icky.map()` will `map()` over the Array calling the function for each item in the array and then `join()` the array using `""`. Why might this be useful? Consider when using ES6 [template literals][tl] to construct a list of items for display on a page in an ordered list:
 
 ```html
 <ol>
-  <li>One</li>
-  <li>Two</li>
-  <li>Three</li>
+  <li>Butter</li>
+  <li>Eggs</li>
+  <li>Salt</li>
 </ol>
 ```
+
+Using ES6 template literals to construct such a list you might write code like this:
+
+```javascript
+let shoppingCart = ['Butter','Eggs','Salt'];
+//...
+const orderedList = (list) => `<ol>${list.map( item => `<li>${item}</li>` )}</ol>
+```
+
+...but the results would look something like this:
+
+```html
+<ol>
+  <li>Butter</li>,
+  <li>Eggs</li>,
+  <li>Salt</li>
+</ol>
+```
+
+Each item has a `,` character following it because when an array is converted to a string it is `join()`ed using the default join character (`,`). The `icky.map()` function ensures no extraneous `,` characters will appear in the HTML. So when you rewrite the above function as:
+
+```javascript
+const orderedList = (list) => `<ol>${icky.map(list, item => `<li>${item}</li>` )}</ol>
+```
+
+...the output will be:
+
+```html
+<ol>
+  <li>Butter</li>
+  <li>Eggs</li>
+  <li>Salt</li>
+</ol>
+```
+
 
 [tl]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
