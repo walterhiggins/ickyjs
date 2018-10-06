@@ -138,6 +138,34 @@ This is probably the _ickiest_ part of icky.js . Given a query selector and a fu
 
 It's not big and it's not clever.
 
+### icky()
+
+All 3 of the above functions can also be invoked simply as `icky()` . `icky()` overloads all 3 functions so instead of writing:
+
+```javascript
+var cart = ['Butter', 'Milk', 'Eggs', 'Salt'];
+icky.update('#root', () => {
+  const emptyCartOnClick = icky.fname(() => {
+    cart.splice(0,cart.length);
+  });
+  return `<ol>${icky.map(cart, item => `<li>${item}</li>`)}</ol><button onclick="${emptyCartOnClick}()">Empty Cart</button>`;
+});
+```
+
+You could write this:
+
+```javascript
+var cart = ['Butter', 'Milk', 'Eggs', 'Salt'];
+icky('#root', () => {
+  const emptyCartOnClick = icky(() => {
+    cart.splice(0,cart.length);
+  });
+  return `<ol>${icky(cart, item => `<li>${item}</li>`)}</ol><button onclick="${emptyCartOnClick}()">Empty Cart</button>`;
+});
+```
+
+... for extra _ickyness_. 
+
 ## About the name
 
 The name _Icky_ came to mind as I watched [this video on WebComponents and Polymer][wcp] wherein the presenter talks about setting `innerHTML` as feeling [icky][dic].
