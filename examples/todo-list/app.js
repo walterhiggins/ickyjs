@@ -93,53 +93,50 @@
   function tTodoItem(todo) {
     const onToggleItemStatus = icky.fname(() => model.toggle(todo));
     const onRemove = icky.fname(() => model.remove(todo));
+    let label, input, listItem;
+    const edit = icky.fname(function(pLabel) {
+      label = pLabel;
+      listItem = label.parentElement.parentElement;
+      input = qs("input.edit", listItem);
+      listItem.classList.add("editing");
+      input.focus();
+    });
+    const maybeSave = icky.fname(input => {
+      if (!input.dataset.iscanceled) {
+        var value = input.value.trim();
+        if (value.length) {
+          model.setText(todo, value);
+          label.innerText = value;
+        } else {
+          model.remove(todo);
+        }
+      }
+      listItem.classList.remove("editing");
+    });
+    const doneOnEnter = icky.fname(input => {
+      if (event.keyCode == ENTER_KEY) input.blur();
+    });
+    const cancelOnEsc = icky.fname(input => {
+      if (event.keyCode == ESCAPE_KEY) {
+        input.dataset.iscanceled = true;
+        input.blur();
+      }
+    });
 
     return `
     <li class="${todo.done ? "completed" : ""}">
       <div class="view">
         <input class="toggle" type="checkbox" ${todo.done ? "checked" : ""} 
                onchange="${onToggleItemStatus}()" />
-        ${tInPlaceEditor(() => todo.text, v => model.setText(todo, v))}  
+        <label ondblclick="${edit}(this)">${todo.text}</label>
         <button class="destroy" onclick="${onRemove}()"></button>
       </div>
-    </li>
-      `;
-  }
-
-  // A label which when double-clicked becomes an editable field
-  function tInPlaceEditor(getter, setter) {
-    const activate = icky.fname(function(label) {
-      var listItem = label.parentElement.parentElement;
-      listItem.classList.add("editing");
-      const input = document.createElement("input");
-      input.className = "edit";
-      input.value = label.innerText;
-      listItem.appendChild(input);
-      input.focus();
-      function editDone() {
-        listItem.removeChild(input);
-        listItem.classList.remove("editing");
-      }
-      input.onblur = function() {
-        if (!this.dataset.iscanceled) {
-          var value = this.value.trim();
-          setter(value);
-          label.innerText = value;
-          editDone();
-        }
-      };
-      input.onkeypress = function() {
-        if (event.keyCode == ENTER_KEY) this.blur();
-      };
-      input.onkeyup = function() {
-        if (event.keyCode === ESCAPE_KEY) {
-          this.dataset.iscanceled = true;
-          this.blur();
-          editDone();
-        }
-      };
-    });
-    return `<label ondblclick="${activate}(this)">${getter()}</label>`;
+      <input class="edit"
+             onblur="${maybeSave}(this)"
+             onkeypress="${doneOnEnter}(this)" 
+             onkeyup="${cancelOnEsc}(this)"
+             value="${todo.text}"/>
+    </li>`;
   }
 
   // Items remaining
@@ -218,6 +215,13 @@
     this.value = "";
   };
 
+  qs("input.toggle-all").onchange = function() {
+    if (this.checked) {
+      model.remaining().map(model.toggle);
+    } else {
+      model.completed().map(model.toggle);
+    }
+  };
   const routes = {
     active: () => model.visibility("Active"),
     completed: () => model.visibility("Completed")

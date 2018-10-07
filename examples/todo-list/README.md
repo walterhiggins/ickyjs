@@ -14,7 +14,7 @@ This implementation doesn't look exactly like the ToDoMVC implementation but the
 * [x] The App's visibility state (Active/Completed/All) is directly addressable (can be bookmarked)
 * [x] Uses LocalStorage
 * [x] _Clear Completed_ available when >0 Completed items
-* [ ] Bulk complete/uncomplete
+* [x] Bulk complete/uncomplete
 
 The purpose of the ToDoMVC project is to provide example code that exercises each framework. 
 
