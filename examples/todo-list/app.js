@@ -1,6 +1,9 @@
 (function(exports) {
   "use strict";
 
+  const qs = (selector, el) =>
+    el ? el.querySelector(selector) : document.querySelector(selector);
+
   const ENTER_KEY = 13,
     ESCAPE_KEY = 27;
   const TOPIC = {
@@ -206,7 +209,7 @@
   model = new Model();
   const onVisibilityChange = icky.fname(model.visibility);
   // Handle new ToDo addition
-  document.querySelector("input.new-todo").onchange = function() {
+  qs("input.new-todo").onchange = function() {
     let text = this.value;
     if (text.trim().length == 0) {
       return;
