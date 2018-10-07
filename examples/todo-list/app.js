@@ -11,7 +11,8 @@
     ITEM_CHANGED: "todos/itemChanged",
     ITEM_REMOVED: "todos/itemRemoved",
     ITEM_ADDED: "todos/itemAdded",
-    VISIBILITY_CHANGED: "todos/visibilityChanged"
+    VISIBILITY_CHANGED: "todos/visibilityChanged",
+    BULK_STATUS_CHANGE: "todos/bulkStatusChange"
   };
   const VISIBILITY_ALL = "All",
     VISIBILITY_ACTIVE = "Active",
@@ -44,10 +45,16 @@
 
     return {
       toggle: todo => {
-        const old = { ...todo };
-        todo.done = !todo.done;
-        save();
-        PubSub.publish(TOPIC.ITEM_CHANGED, { o: old, n: todo });
+        if (todo.constructor == Array) {
+          todo.map(item => (item.done = !item.done));
+          save();
+          PubSub.publish(TOPIC.BULK_STATUS_CHANGE, todo);
+        } else {
+          const old = { ...todo };
+          todo.done = !todo.done;
+          save();
+          PubSub.publish(TOPIC.ITEM_CHANGED, { o: old, n: todo });
+        }
       },
       setText: (todo, text) => {
         const old = { ...todo };
@@ -76,7 +83,8 @@
       },
       visible: () => todos.filter(visible),
       remaining: () => todos.filter(item => !item.done),
-      completed: () => todos.filter(item => item.done)
+      completed: () => todos.filter(item => item.done),
+      all: () => [...todos]
     };
   }
 
@@ -176,6 +184,13 @@
     icky.update("ul.todo-list", tTodoList);
     icky.update("ul.filters", tFilterList);
     icky.update("#clearCompleted", tClearCompleted);
+    let toggleAll = qs("input.toggle-all");
+    toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
+  });
+  PubSub.subscribe(TOPIC.BULK_STATUS_CHANGE, (msg, payload) => {
+    icky.update(".todo-count", tItemsLeft);
+    icky.update("ul.todo-list", tTodoList);
+    icky.update("#clearCompleted", tClearCompleted);
   });
   PubSub.subscribe(TOPIC.ITEM_CHANGED, (msg, payload) => {
     // only update if status has change not text
@@ -183,16 +198,23 @@
       icky.update(".todo-count", tItemsLeft);
       icky.update("ul.todo-list", tTodoList);
       icky.update("#clearCompleted", tClearCompleted);
+      let toggleAll = qs("input.toggle-all");
+      toggleAll.checked =
+        model.all().length > 0 && model.remaining().length == 0;
     }
   });
   PubSub.subscribe(TOPIC.ITEM_REMOVED, () => {
     icky.update(".todo-count", tItemsLeft);
     icky.update("ul.todo-list", tTodoList);
     icky.update("#clearCompleted", tClearCompleted);
+    let toggleAll = qs("input.toggle-all");
+    toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
   });
   PubSub.subscribe(TOPIC.ITEM_ADDED, () => {
     icky.update(".todo-count", tItemsLeft);
     icky.update("ul.todo-list", tTodoList);
+    let toggleAll = qs("input.toggle-all");
+    toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
   });
   PubSub.subscribe(TOPIC.VISIBILITY_CHANGED, () => {
     icky.update("ul.filters", tFilterList);
@@ -215,11 +237,12 @@
     this.value = "";
   };
 
-  qs("input.toggle-all").onchange = function() {
+  let toggleAll = qs("input.toggle-all");
+  toggleAll.onchange = function() {
     if (this.checked) {
-      model.remaining().map(model.toggle);
+      model.toggle(model.remaining());
     } else {
-      model.completed().map(model.toggle);
+      model.toggle(model.completed());
     }
   };
   const routes = {
