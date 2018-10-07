@@ -4,6 +4,8 @@
   const qs = (selector, el) =>
     el ? el.querySelector(selector) : document.querySelector(selector);
 
+  const toggleAll = qs("input.toggle-all");
+
   const ENTER_KEY = 13,
     ESCAPE_KEY = 27;
   const TOPIC = {
@@ -184,7 +186,6 @@
     icky.update("ul.todo-list", tTodoList);
     icky.update("ul.filters", tFilterList);
     icky.update("#clearCompleted", tClearCompleted);
-    let toggleAll = qs("input.toggle-all");
     toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
   });
   PubSub.subscribe(TOPIC.BULK_STATUS_CHANGE, (msg, payload) => {
@@ -198,7 +199,6 @@
       icky.update(".todo-count", tItemsLeft);
       icky.update("ul.todo-list", tTodoList);
       icky.update("#clearCompleted", tClearCompleted);
-      let toggleAll = qs("input.toggle-all");
       toggleAll.checked =
         model.all().length > 0 && model.remaining().length == 0;
     }
@@ -207,13 +207,11 @@
     icky.update(".todo-count", tItemsLeft);
     icky.update("ul.todo-list", tTodoList);
     icky.update("#clearCompleted", tClearCompleted);
-    let toggleAll = qs("input.toggle-all");
     toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
   });
   PubSub.subscribe(TOPIC.ITEM_ADDED, () => {
     icky.update(".todo-count", tItemsLeft);
     icky.update("ul.todo-list", tTodoList);
-    let toggleAll = qs("input.toggle-all");
     toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
   });
   PubSub.subscribe(TOPIC.VISIBILITY_CHANGED, () => {
@@ -237,7 +235,6 @@
     this.value = "";
   };
 
-  let toggleAll = qs("input.toggle-all");
   toggleAll.onchange = function() {
     if (this.checked) {
       model.toggle(model.remaining());
