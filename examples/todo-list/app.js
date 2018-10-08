@@ -1,6 +1,6 @@
 (function(exports) {
   "use strict";
-
+  let { fname, update, map } = icky;
   const qs = (selector, el) =>
     el ? el.querySelector(selector) : document.querySelector(selector);
 
@@ -97,22 +97,21 @@
   // ------------------------------------------------------------------------
 
   // Todo List
-  const tTodoList = () => icky.map(model.visible(), tTodoItem);
+  const tTodoList = () => map(model.visible(), tTodoItem);
 
   // Todo Item
   function tTodoItem(todo) {
-    const onToggleItemStatus = icky.fname(() => model.toggle(todo));
-    const onRemove = icky.fname(() => model.remove(todo));
     let label, input, listItem;
-    const edit = icky.fname(function(pLabel) {
+    const edit = fname(function(pLabel) {
       label = pLabel;
       listItem = label.parentElement.parentElement;
       input = qs("input.edit", listItem);
       listItem.classList.add("editing");
       input.focus();
     });
-    const maybeSave = icky.fname(input => {
-      if (!input.dataset.iscanceled) {
+    let isCanceled = false;
+    const maybeSave = fname(input => {
+      if (!isCanceled) {
         var value = input.value.trim();
         if (value.length) {
           model.setText(todo, value);
@@ -123,12 +122,12 @@
       }
       listItem.classList.remove("editing");
     });
-    const doneOnEnter = icky.fname(input => {
+    const doneOnEnter = fname(input => {
       if (event.keyCode == ENTER_KEY) input.blur();
     });
-    const cancelOnEsc = icky.fname(input => {
+    const cancelOnEsc = fname(input => {
       if (event.keyCode == ESCAPE_KEY) {
-        input.dataset.iscanceled = true;
+        isCanceled = true;
         input.blur();
       }
     });
@@ -137,9 +136,10 @@
     <li class="${todo.done ? "completed" : ""}">
       <div class="view">
         <input class="toggle" type="checkbox" ${todo.done ? "checked" : ""} 
-               onchange="${onToggleItemStatus}()" />
+               onchange="${fname(() => model.toggle(todo))}()" />
         <label ondblclick="${edit}(this)">${todo.text}</label>
-        <button class="destroy" onclick="${onRemove}()"></button>
+        <button class="destroy"
+                onclick="${fname(() => model.remove(todo))}()"></button>
       </div>
       <input class="edit"
              onblur="${maybeSave}(this)"
@@ -155,7 +155,7 @@
   const tClearCompleted = () => {
     var completed = model.completed();
     if (completed.length > 0) {
-      let onClick = icky.fname(() => {
+      let onClick = fname(() => {
         completed.forEach(model.remove);
       });
       return `<button class="clear-completed" onclick="${onClick}()">Clear completed</a>`;
@@ -182,41 +182,41 @@
   //  update application views when state changes
   // ------------------------------------------------------------------------
   PubSub.subscribe(TOPIC.ITEMS_LOADED, () => {
-    icky.update(".todo-count", tItemsLeft);
-    icky.update("ul.todo-list", tTodoList);
-    icky.update("ul.filters", tFilterList);
-    icky.update("#clearCompleted", tClearCompleted);
+    update(".todo-count", tItemsLeft);
+    update("ul.todo-list", tTodoList);
+    update("ul.filters", tFilterList);
+    update("#clearCompleted", tClearCompleted);
     toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
   });
   PubSub.subscribe(TOPIC.BULK_STATUS_CHANGE, (msg, payload) => {
-    icky.update(".todo-count", tItemsLeft);
-    icky.update("ul.todo-list", tTodoList);
-    icky.update("#clearCompleted", tClearCompleted);
+    update(".todo-count", tItemsLeft);
+    update("ul.todo-list", tTodoList);
+    update("#clearCompleted", tClearCompleted);
   });
   PubSub.subscribe(TOPIC.ITEM_CHANGED, (msg, payload) => {
     // only update if status has change not text
     if (payload.o.done != payload.n.done) {
-      icky.update(".todo-count", tItemsLeft);
-      icky.update("ul.todo-list", tTodoList);
-      icky.update("#clearCompleted", tClearCompleted);
+      update(".todo-count", tItemsLeft);
+      update("ul.todo-list", tTodoList);
+      update("#clearCompleted", tClearCompleted);
       toggleAll.checked =
         model.all().length > 0 && model.remaining().length == 0;
     }
   });
   PubSub.subscribe(TOPIC.ITEM_REMOVED, () => {
-    icky.update(".todo-count", tItemsLeft);
-    icky.update("ul.todo-list", tTodoList);
-    icky.update("#clearCompleted", tClearCompleted);
+    update(".todo-count", tItemsLeft);
+    update("ul.todo-list", tTodoList);
+    update("#clearCompleted", tClearCompleted);
     toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
   });
   PubSub.subscribe(TOPIC.ITEM_ADDED, () => {
-    icky.update(".todo-count", tItemsLeft);
-    icky.update("ul.todo-list", tTodoList);
+    update(".todo-count", tItemsLeft);
+    update("ul.todo-list", tTodoList);
     toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
   });
   PubSub.subscribe(TOPIC.VISIBILITY_CHANGED, () => {
-    icky.update("ul.filters", tFilterList);
-    icky.update("ul.todo-list", tTodoList);
+    update("ul.filters", tFilterList);
+    update("ul.todo-list", tTodoList);
   });
 
   // ------------------------------------------------------------------------
@@ -224,7 +224,7 @@
   // ------------------------------------------------------------------------
 
   model = new Model();
-  const onVisibilityChange = icky.fname(model.visibility);
+  const onVisibilityChange = fname(model.visibility);
   // Handle new ToDo addition
   qs("input.new-todo").onchange = function() {
     let text = this.value;
