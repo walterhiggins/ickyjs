@@ -97,51 +97,54 @@
 
   // Todo List
   const tTodoList = () => {
+    // todo list can potentially create a lot of DOM elements
+    // each with many event handlers.
     let namer = gnf("tTodoList");
     return map(model.visible(), item => tTodoItem(namer, item));
   };
 
   // Todo Item
-  function tTodoItem(gnf, todo) {
+  function tTodoItem(nf, todo) {
     let label, input, listItem;
-    const edit = gnf(function(pLabel) {
-      label = pLabel;
-      listItem = label.parentElement.parentElement;
-      input = qs("input.edit", listItem);
-      listItem.classList.add("editing");
-      input.focus();
-    });
     let isCanceled = false;
-    const maybeSave = gnf(input => {
-      if (!isCanceled) {
-        var value = input.value.trim();
-        if (value.length) {
-          model.setText(todo, value);
-          label.innerText = value;
-        } else {
-          model.remove(todo);
-        }
-      }
-      listItem.classList.remove("editing");
-    });
-    const doneOnEnter = gnf(input => {
+    const doneOnEnter = nf(input => {
       if (event.keyCode == ENTER_KEY) input.blur();
     });
-    const cancelOnEsc = gnf(input => {
+    const cancelOnEsc = nf(input => {
       if (event.keyCode == ESCAPE_KEY) {
         isCanceled = true;
         input.blur();
       }
+    });
+    const maybeSave = nf(input => {
+      listItem.classList.remove("editing");
+      if (isCanceled) return;
+      var value = input.value.trim();
+      if (value.length) {
+        model.setText(todo, value);
+        label.innerText = value;
+      } else {
+        model.remove(todo);
+      }
+    });
+    const edit = nf(pLabel => {
+      label = pLabel;
+      listItem = label.parentElement.parentElement;
+      listItem.classList.add("editing");
+      input = qs("input.edit", listItem);
+      input.focus();
     });
 
     return `
     <li class="${todo.done ? "completed" : ""}">
       <div class="view">
         <input class="toggle" type="checkbox" ${todo.done ? "checked" : ""} 
-               onchange="${gnf(() => model.toggle(todo))}()" />
+               onchange="${nf(() => model.toggle(todo))}()" />
+
         <label ondblclick="${edit}(this)">${todo.text}</label>
+
         <button class="destroy"
-                onclick="${gnf(() => model.remove(todo))}()"></button>
+                onclick="${nf(() => model.remove(todo))}()"></button>
       </div>
       <input class="edit"
              onblur="${maybeSave}(this)"
