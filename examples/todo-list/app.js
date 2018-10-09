@@ -1,6 +1,6 @@
 (function(exports) {
   "use strict";
-  let { fname, update, map } = icky;
+  let { gnf, update, map } = icky;
   const qs = (selector, el) =>
     el ? el.querySelector(selector) : document.querySelector(selector);
 
@@ -97,14 +97,14 @@
 
   // Todo List
   const tTodoList = () => {
-    let namer = fname("tTodoList");
+    let namer = gnf("tTodoList");
     return map(model.visible(), item => tTodoItem(namer, item));
   };
 
   // Todo Item
-  function tTodoItem(fname, todo) {
+  function tTodoItem(gnf, todo) {
     let label, input, listItem;
-    const edit = fname(function(pLabel) {
+    const edit = gnf(function(pLabel) {
       label = pLabel;
       listItem = label.parentElement.parentElement;
       input = qs("input.edit", listItem);
@@ -112,7 +112,7 @@
       input.focus();
     });
     let isCanceled = false;
-    const maybeSave = fname(input => {
+    const maybeSave = gnf(input => {
       if (!isCanceled) {
         var value = input.value.trim();
         if (value.length) {
@@ -124,10 +124,10 @@
       }
       listItem.classList.remove("editing");
     });
-    const doneOnEnter = fname(input => {
+    const doneOnEnter = gnf(input => {
       if (event.keyCode == ENTER_KEY) input.blur();
     });
-    const cancelOnEsc = fname(input => {
+    const cancelOnEsc = gnf(input => {
       if (event.keyCode == ESCAPE_KEY) {
         isCanceled = true;
         input.blur();
@@ -138,10 +138,10 @@
     <li class="${todo.done ? "completed" : ""}">
       <div class="view">
         <input class="toggle" type="checkbox" ${todo.done ? "checked" : ""} 
-               onchange="${fname(() => model.toggle(todo))}()" />
+               onchange="${gnf(() => model.toggle(todo))}()" />
         <label ondblclick="${edit}(this)">${todo.text}</label>
         <button class="destroy"
-                onclick="${fname(() => model.remove(todo))}()"></button>
+                onclick="${gnf(() => model.remove(todo))}()"></button>
       </div>
       <input class="edit"
              onblur="${maybeSave}(this)"
@@ -157,7 +157,7 @@
   const tClearCompleted = () => {
     var completed = model.completed();
     if (completed.length > 0) {
-      let onClick = fname(() => {
+      let onClick = gnf(() => {
         completed.forEach(model.remove);
       });
       return `
@@ -228,7 +228,7 @@
   // ------------------------------------------------------------------------
 
   model = new Model();
-  const onVisibilityChange = fname(model.visibility);
+  const onVisibilityChange = gnf(model.visibility);
   // Handle new ToDo addition
   qs("input.new-todo").onchange = function() {
     let text = this.value;

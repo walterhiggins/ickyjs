@@ -26,15 +26,15 @@ app.js
     { done: true, text: "Fall out of Bed" },
     { done: false, text: "Drag a comb across my head" },
   ];
-
+  let {gnf, update, map} = icky;
   const todoView = () => `
   <ol>
-    ${icky.map(todos, todoItem)}
+    ${map(todos, todoItem)}
   </ol>`;
 
   const todoItem = todo => {
     // an event handler bound to an object
-    const onToggleStatus = icky.fname(el => {
+    const onToggleStatus = gnf(el => {
       todo.done = el.checked;
     });
     return `
@@ -43,7 +43,7 @@ app.js
       ${todo.text}
     </li>`;
   };
-  exports.onload = () => icky.update("#ickyroot", todoView);
+  exports.onload = () => update("#ickyroot", todoView);
 })(window);
 ```
 
@@ -51,11 +51,12 @@ app.js
 
 ES6 [Template literals][tl] make writing HTML in Javascript easier. icky.js provides just 3 functions which help in the construction of HTML using template literals.
 
-### icky.fname()
+### icky.gnf()
 
-Given a function reference returns a unique name so the function can be used as an event handler. For example:  
+gnf is short for Globally-Name Function. Given a function as a parameter it returns a unique name so the function can be used as an event handler. For example:  
 
 ```javascript
+let {gnf} = icky;
 var shoppingCart = [];
 // ...
 function removeItemFromCart (item) {
@@ -63,7 +64,7 @@ function removeItemFromCart (item) {
 }
 // ...
 function btnRemoveItem( item ){
-  const onClick = icky.fname( btn => {
+  const onClick = gnf( btn => {
     removeItemFromCart( item );
     btn.disabled = true;
   });
@@ -72,10 +73,85 @@ function btnRemoveItem( item ){
 ```
 This allows bindings between objects and DOM event handlers. Just like Angular's `ng-click`  but without the pain of having to use Angular ;-p
 
-For the curious: The function is assigned to a distinct new name in the `window.icky.fname` namespace. In the above example, the generated HTML might look something like this:
+For the curious: The function is assigned to a distinct new name in the `window.icky.namespaces` namespace. In the above example, the generated HTML might look something like this:
 
 ```html
-<button onclick="icky.fname.fn_15(this)">Remove</button>
+<button onclick="icky.namespaces.fn_15(this)">Remove</button>
+```
+
+As you can imagine, this could potentially be a source of memory leaks because the functions (and their closures) are _kept_ around in memory indefinitely while a reference to them exists on the window object. This can be especially problematic if you use `gnf()` on a collection of objects:
+
+```javascript
+// setup data
+var numbers = [];
+for (var i = 0;i < 100; i++){
+  numbers.push('Number ' + i);
+}
+
+// template for a list of numbers
+const tNumberList = () => {
+  return `
+  <ol>
+    ${icky.map(numbers, tNumber)}
+  </ol>`;
+};
+
+// template for a number 
+const tNumber = (number) => {
+  
+  const onclick = gnf(btn => { 
+    // the number is bound to the element's event handlers via a closure 
+    console.log(number);
+  });
+
+  return `
+  <li>
+    <button onclick="${onclick}(this)">${number}</button>
+  </li>`;
+}
+
+// update page
+icky.update("#root", tNumberList);
+```
+
+If the `#root` element were updated frequently each call to `tNumberList` will generate new closures which will be kept around (not garbage collected).
+You can workaround this by specifying a distinct namespace which will be initialized (existing references in the namespace will be wiped out).
+You can use the `gnf` function to specify a new namespace and return a function which will populate the namespace. This is best illustrated by example:
+
+
+```javascript
+// setup data
+var numbers = [];
+for (var i = 0;i < 100; i++){
+  numbers.push('Number ' + i);
+}
+
+// template for a list of numbers
+const tNumberList = () => {
+  // construct an initialise a namespace for this component's children
+  let nlGnf = gnf('tNumberList');
+  return `
+  <ol>
+    ${icky.map(numbers, (number) => tNumber(nlGnf, number))}
+  </ol>`;
+};
+
+// template for a number 
+const tNumber = (nf, number) => {
+  
+  const onclick = nf(btn => { 
+    // the number is bound to the element's event handlers via a closure 
+    console.log(number);
+  });
+
+  return `
+  <li>
+    <button onclick="${onclick}(this)">${number}</button>
+  </li>`;
+}
+
+// update page
+icky.update("#root", tNumberList);
 ```
 
 ### icky.map()
@@ -138,41 +214,6 @@ This is probably the _ickiest_ part of icky.js . Given a query selector and a fu
 
 It's not big and it's not clever.
 
-### icky()
-
-All 3 of the above functions can also be invoked simply as `icky()` because the `icky()` function overloads all 3 functions so instead of writing:
-
-```javascript
-var cart = ['Butter', 'Milk', 'Eggs', 'Salt'];
-icky.update('#root', () => {
-  const emptyCartOnClick = icky.fname(() => {
-    cart.splice(0,cart.length);
-  });
-  return `
-  <ol>
-    ${icky.map(cart, item => `<li>${item}</li>`)}
-  </ol>
-  <button onclick="${emptyCartOnClick}()">Empty Cart</button>`;
-});
-```
-
-You could write this:
-
-```javascript
-var cart = ['Butter', 'Milk', 'Eggs', 'Salt'];
-icky('#root', () => {
-  const emptyCartOnClick = icky(() => {
-    cart.splice(0,cart.length);
-  });
-  return `
-  <ol>
-    ${icky(cart, item => `<li>${item}</li>`)}
-  </ol>
-  <button onclick="${emptyCartOnClick}()">Empty Cart</button>`;
-});
-```
-
-... for extra _ickyness_. 
 
 ## About the name
 

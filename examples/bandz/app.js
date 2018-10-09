@@ -1,12 +1,12 @@
 //fetch("https://musicbrainz.org/ws/2/artist?query=The%20Stone%20Roses&fmt=json")
 //    .then(response => response.json())
 //    .then(
-let { fname, update } = icky;
+let { gnf, update } = icky;
 
 const tSearch = (placeholder, callback) => `
   <span class="search">
     <input placeholder="${placeholder}"
-           onchange="${fname(callback)}(this.value)">
+           onchange="${gnf(callback)}(this.value)">
     <i class="fas fa-search"></i>
   </span>`;
 
