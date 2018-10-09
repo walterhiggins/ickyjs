@@ -34,7 +34,6 @@
           return !item.done;
       }
     };
-
     let { todos, visibility } = JSON.parse(localStorage.getItem(name)) || {
       todos: [],
       visibility: VISIBILITY_ALL
@@ -97,10 +96,13 @@
   // ------------------------------------------------------------------------
 
   // Todo List
-  const tTodoList = () => map(model.visible(), tTodoItem);
+  const tTodoList = () => {
+    let namer = fname("tTodoList");
+    return map(model.visible(), item => tTodoItem(namer, item));
+  };
 
   // Todo Item
-  function tTodoItem(todo) {
+  function tTodoItem(fname, todo) {
     let label, input, listItem;
     const edit = fname(function(pLabel) {
       label = pLabel;
@@ -158,7 +160,9 @@
       let onClick = fname(() => {
         completed.forEach(model.remove);
       });
-      return `<button class="clear-completed" onclick="${onClick}()">Clear completed</a>`;
+      return `
+      <button class="clear-completed" 
+              onclick="${onClick}()">Clear completed</a>`;
     } else {
       return ``;
     }

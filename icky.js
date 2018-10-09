@@ -4,38 +4,27 @@
 
 (function(exports) {
   "use strict";
-  function icky() {
-    if (arguments.length == 1) {
-      if (arguments[0].constructor == Function) {
-        return icky.fname(arguments[0]);
-      }
-    }
-    if (arguments.length == 2) {
-      if (
-        arguments[0].constructor == Array &&
-        arguments[1].constructor == Function
-      ) {
-        return icky.map(arguments[0], arguments[1]);
-      }
-      if (
-        arguments[0].constructor == String &&
-        arguments[1].constructor == Function
-      ) {
-        return icky.update(arguments[0], arguments[1]);
-      }
-    }
-  }
   //
   // given a function assign it a globally-accessible name
   // so it can be used as an event handler.
   //
+  let icky = {};
   icky.fname = fn => {
-    if (icky.fname.counter == undefined) {
-      icky.fname.counter = 0;
+    if (icky.fname._counter == undefined) {
+      icky.fname._counter = 0;
     }
-    var name = `fn_${icky.fname.counter++}`;
-    icky.fname[name] = fn;
-    return `icky.fname.${name}`;
+    if (fn.constructor == Function) {
+      var name = `fn_${icky.fname._counter++}`;
+      icky.fname[name] = fn;
+      return `icky.fname.${name}`;
+    } else {
+      icky.fname[fn] = {};
+      return function(fn2) {
+        var name = `fn_${icky.fname._counter++}`;
+        icky.fname[fn][name] = fn2;
+        return `icky.fname.${fn}.${name}`;
+      };
+    }
   };
   //
   // Makes use in template strings nice.
