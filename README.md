@@ -26,24 +26,28 @@ app.js
     { done: true, text: "Fall out of Bed" },
     { done: false, text: "Drag a comb across my head" },
   ];
-  let {gnf, update, map} = icky;
+  // icky.map simplifies constructing a string from an array
   const todoView = () => `
   <ol>
-    ${map(todos, todoItem)}
+    ${icky.map(todos, todoItem)}
   </ol>`;
 
   const todoItem = todo => {
-    // an event handler bound to an object
-    const onToggleStatus = gnf(el => {
+    // icky.gnf assigns a unique global name to a function
+    const onToggleStatus = icky.gnf(el => {
+      // this event handler is bound to the todo object
       todo.done = el.checked;
     });
     return `
     <li>
-      <input type="checkbox" onchange="${onToggleStatus}(this)" ${todo.done ? "checked" : ""} /> 
+      <input type="checkbox" 
+             onchange="${onToggleStatus}(this)" 
+             ${todo.done ? "checked" : ""} /> 
       ${todo.text}
     </li>`;
   };
-  exports.onload = () => update("#ickyroot", todoView);
+  // icky.update populates an element with HTML
+  exports.onload = () => icky.update("#ickyroot", todoView);
 })(window);
 ```
 
@@ -73,10 +77,10 @@ function btnRemoveItem( item ){
 ```
 This allows bindings between objects and DOM event handlers. Just like Angular's `ng-click`  but without the pain of having to use Angular ;-p
 
-For the curious: The function is assigned to a distinct new name in the `window.icky.namespaces` namespace. In the above example, the generated HTML might look something like this:
+For the curious: The function is assigned to a distinct new name in the `icky.namespaces.functions` namespace. In the above example, the generated HTML might look something like this:
 
 ```html
-<button onclick="icky.namespaces.fn_15(this)">Remove</button>
+<button onclick="icky.namespaces.functions.fn_15(this)">Remove</button>
 ```
 
 As you can imagine, this could potentially be a source of memory leaks because the functions (and their closures) are _kept_ around in memory indefinitely while a reference to them exists on the window object. This can be especially problematic if you use `gnf()` on a collection of objects:
@@ -115,7 +119,7 @@ icky.update("#root", tNumberList);
 ```
 
 If the `#root` element were updated frequently each call to `tNumberList` will generate new closures which will be kept around (not garbage collected).
-You can workaround this by specifying a distinct namespace which will be initialized (existing references in the namespace will be wiped out).
+You can work around this by specifying a distinct namespace which will be initialized (existing references in the namespace will be wiped out).
 You can use the `gnf` function to specify a new namespace and return a function which will populate the namespace. This is best illustrated by example:
 
 
@@ -129,10 +133,10 @@ for (var i = 0;i < 100; i++){
 // template for a list of numbers
 const tNumberList = () => {
   // construct an initialise a namespace for this component's children
-  let nlGnf = gnf('tNumberList');
+  let nf = gnf('tNumberList');
   return `
   <ol>
-    ${icky.map(numbers, (number) => tNumber(nlGnf, number))}
+    ${icky.map(numbers, (number) => tNumber(nf, number))}
   </ol>`;
 };
 
