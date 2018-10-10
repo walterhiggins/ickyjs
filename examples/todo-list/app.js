@@ -9,8 +9,6 @@
     args.forEach(topic => PubSub.subscribe(topic, callback));
   };
 
-  const toggleAll = qs("input.toggle-all");
-
   const KEY = {
     ENTER: 13,
     ESCAPE: 27
@@ -239,6 +237,7 @@
     this.value = "";
   };
 
+  const toggleAll = qs("input.toggle-all");
   toggleAll.onchange = function() {
     if (this.checked) {
       model.toggle(model.remaining());
