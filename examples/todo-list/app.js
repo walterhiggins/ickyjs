@@ -4,21 +4,35 @@
   const qs = (selector, el) =>
     el ? el.querySelector(selector) : document.querySelector(selector);
 
+  const on = (...args) => {
+    const callback = args.pop();
+    args.forEach(topic =>
+      PubSub.subscribe(topic, (msg, payload) => {
+        callback(msg, payload);
+      })
+    );
+  };
+
   const toggleAll = qs("input.toggle-all");
 
-  const ENTER_KEY = 13,
-    ESCAPE_KEY = 27;
+  const KEY = {
+    ENTER: 13,
+    ESCAPE: 27
+  };
   const TOPIC = {
     ITEMS_LOADED: "todos/itemsLoaded",
     ITEM_CHANGED: "todos/itemChanged",
+    ITEM_STATUS_CHANGED: "todos/itemStatusChanged",
     ITEM_REMOVED: "todos/itemRemoved",
     ITEM_ADDED: "todos/itemAdded",
     VISIBILITY_CHANGED: "todos/visibilityChanged",
     BULK_STATUS_CHANGE: "todos/bulkStatusChange"
   };
-  const VISIBILITY_ALL = "All",
-    VISIBILITY_ACTIVE = "Active",
-    VISIBILITY_COMPLETED = "Completed";
+  const VISIBILITY = {
+    ALL: "All",
+    ACTIVE: "Active",
+    COMPLETED: "Completed"
+  };
 
   // ------------------------------------------------------------------------
   // Model
@@ -26,17 +40,17 @@
   function Model(name = "todos") {
     const visible = item => {
       switch (visibility) {
-        case VISIBILITY_ALL:
+        case VISIBILITY.ALL:
           return true;
-        case VISIBILITY_COMPLETED:
+        case VISIBILITY.COMPLETED:
           return item.done;
-        case VISIBILITY_ACTIVE:
+        case VISIBILITY.ACTIVE:
           return !item.done;
       }
     };
     let { todos, visibility } = JSON.parse(localStorage.getItem(name)) || {
       todos: [],
-      visibility: VISIBILITY_ALL
+      visibility: VISIBILITY.ALL
     };
     setTimeout(() => PubSub.publish(TOPIC.ITEMS_LOADED), 1);
 
@@ -54,7 +68,7 @@
           const old = { ...todo };
           todo.done = !todo.done;
           save();
-          PubSub.publish(TOPIC.ITEM_CHANGED, { o: old, n: todo });
+          PubSub.publish(TOPIC.ITEM_STATUS_CHANGED, { o: old, n: todo });
         }
       },
       setText: (todo, text) => {
@@ -102,16 +116,25 @@
     let namer = gnf("tTodoList");
     return map(model.visible(), item => tTodoItem(namer, item));
   };
+  on(
+    TOPIC.ITEMS_LOADED,
+    TOPIC.BULK_STATUS_CHANGE,
+    TOPIC.ITEM_STATUS_CHANGED,
+    TOPIC.ITEM_REMOVED,
+    TOPIC.ITEM_ADDED,
+    TOPIC.VISIBILITY_CHANGED,
+    () => update("ul.todo-list", tTodoList)
+  );
 
   // Todo Item
   function tTodoItem(nf, todo) {
     let label, input, listItem;
     let isCanceled = false;
     const doneOnEnter = nf(input => {
-      if (event.keyCode == ENTER_KEY) input.blur();
+      if (event.keyCode == KEY.ENTER) input.blur();
     });
     const cancelOnEsc = nf(input => {
-      if (event.keyCode == ESCAPE_KEY) {
+      if (event.keyCode == KEY.ESCAPE) {
         isCanceled = true;
         input.blur();
       }
@@ -156,6 +179,14 @@
 
   // Items remaining
   const tItemsLeft = () => `${model.remaining().length} Items Left`;
+  on(
+    TOPIC.ITEMS_LOADED,
+    TOPIC.BULK_STATUS_CHANGE,
+    TOPIC.ITEM_STATUS_CHANGED,
+    TOPIC.ITEM_REMOVED,
+    TOPIC.ITEM_ADDED,
+    () => update(".todo-count", tItemsLeft)
+  );
 
   const tClearCompleted = () => {
     var completed = model.completed();
@@ -170,13 +201,20 @@
       return ``;
     }
   };
+  on(
+    TOPIC.ITEMS_LOADED,
+    TOPIC.BULK_STATUS_CHANGE,
+    TOPIC.ITEM_STATUS_CHANGED,
+    TOPIC.ITEM_REMOVED,
+    () => update("#clearCompleted", tClearCompleted)
+  );
+
   // Filter links
   const tFilterList = () => `
-    ${tFilterItem("#/", VISIBILITY_ALL)}
-    ${tFilterItem("#/active", VISIBILITY_ACTIVE)}
-    ${tFilterItem("#/completed", VISIBILITY_COMPLETED)}
+    ${tFilterItem("#/", VISIBILITY.ALL)}
+    ${tFilterItem("#/active", VISIBILITY.ACTIVE)}
+    ${tFilterItem("#/completed", VISIBILITY.COMPLETED)}
   `;
-
   // Filter link
   const tFilterItem = (href, type) => `
   <li>
@@ -185,45 +223,8 @@
        onclick="${onVisibilityChange}('${type}')">${type}</a>
   </li>`;
 
-  // ------------------------------------------------------------------------
-  //  update application views when state changes
-  // ------------------------------------------------------------------------
-  PubSub.subscribe(TOPIC.ITEMS_LOADED, () => {
-    update(".todo-count", tItemsLeft);
-    update("ul.todo-list", tTodoList);
+  on(TOPIC.ITEMS_LOADED, TOPIC.VISIBILITY_CHANGED, () => {
     update("ul.filters", tFilterList);
-    update("#clearCompleted", tClearCompleted);
-    toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
-  });
-  PubSub.subscribe(TOPIC.BULK_STATUS_CHANGE, (msg, payload) => {
-    update(".todo-count", tItemsLeft);
-    update("ul.todo-list", tTodoList);
-    update("#clearCompleted", tClearCompleted);
-  });
-  PubSub.subscribe(TOPIC.ITEM_CHANGED, (msg, payload) => {
-    // only update if status has change not text
-    if (payload.o.done != payload.n.done) {
-      update(".todo-count", tItemsLeft);
-      update("ul.todo-list", tTodoList);
-      update("#clearCompleted", tClearCompleted);
-      toggleAll.checked =
-        model.all().length > 0 && model.remaining().length == 0;
-    }
-  });
-  PubSub.subscribe(TOPIC.ITEM_REMOVED, () => {
-    update(".todo-count", tItemsLeft);
-    update("ul.todo-list", tTodoList);
-    update("#clearCompleted", tClearCompleted);
-    toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
-  });
-  PubSub.subscribe(TOPIC.ITEM_ADDED, () => {
-    update(".todo-count", tItemsLeft);
-    update("ul.todo-list", tTodoList);
-    toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
-  });
-  PubSub.subscribe(TOPIC.VISIBILITY_CHANGED, () => {
-    update("ul.filters", tFilterList);
-    update("ul.todo-list", tTodoList);
   });
 
   // ------------------------------------------------------------------------
@@ -249,6 +250,17 @@
       model.toggle(model.completed());
     }
   };
+  on(
+    TOPIC.ITEMS_LOADED,
+    TOPIC.ITEM_STATUS_CHANGED,
+    TOPIC.ITEM_REMOVED,
+    TOPIC.ITEM_ADDED,
+    () => {
+      toggleAll.checked =
+        model.all().length > 0 && model.remaining().length == 0;
+    }
+  );
+
   const routes = {
     active: () => model.visibility("Active"),
     completed: () => model.visibility("Completed")
