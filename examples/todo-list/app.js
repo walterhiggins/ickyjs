@@ -6,11 +6,7 @@
 
   const on = (...args) => {
     const callback = args.pop();
-    args.forEach(topic =>
-      PubSub.subscribe(topic, (msg, payload) => {
-        callback(msg, payload);
-      })
-    );
+    args.forEach(topic => PubSub.subscribe(topic, callback));
   };
 
   const toggleAll = qs("input.toggle-all");
