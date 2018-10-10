@@ -19,7 +19,7 @@
     ENTER: 13,
     ESCAPE: 27
   };
-  // topics used Model and Controllers
+  // topics used by Model and Controllers
   const TOPIC = {
     ITEMS_LOADED: "todos/itemsLoaded",
     ITEM_CHANGED: "todos/itemChanged",
@@ -35,8 +35,10 @@
     COMPLETED: "Completed"
   };
 
-  // Model object responsible for encapsulating changes to the to-do list
-  // Stored in localStorage's "todos" variable by default
+  /*
+    The Model object is responsible for encapsulating changes to the to-do list.
+    Stored in localStorage's "todos" variable by default.
+  */
   function Model(name = "todos") {
     // visibility filter function
     const visible = item => {
@@ -121,17 +123,38 @@
   // declare model variable used throughout rest of code.
   let model = null;
 
-  // ------------------------------------------------------------------------
-  // TEMPLATES
-  // ------------------------------------------------------------------------
+  /*
+    The to-do list application is composed of distinct components which need
+    to be updated when the user interacts with the app. These components are:
 
-  // Todo List
+    1. The input field for adding new to-do items
+    2. The list of to-do items each of which have
+       2.1 A Checkbox to mark the item as completed (this can be toggled on and off)
+       2.2 A Button to remove the item (appears on hover)
+       2.3 A Label with the text which when double-clicked becomes an editable input field.
+    3. A Checkbox to mark ALL items as completed or Active.
+    4. A Label showing a count of completed items.
+    5. A List of hyperlinks in the footer which will show either All, Active or Completed items.
+    6. A Button to Remove all completed items (which only appears if there are >1 completed items)
+
+    Many components are constructed by invoking a function which returns a string of HTML.
+    Constructing strings of HTML is now easier in ES6 thanks to Template Literals.
+   */
+
+  // Component: Todo List
   const tTodoList = () => {
-    // todo list can potentially create a lot of DOM elements
-    // each with many event handlers.
+    /*
+      The todo list can potentially create a lot of DOM elements each with many event handlers.
+      When using the gnf() function to allocate global names to the event-handler functions, the
+      functions are referenced from the global window.icky.namespaces.functions object.
+      To avoid memory leaks construct a new dedicated namespace and naming function which will 
+      be torn-down and reconstructed whenever this function is called.
+    */
     let namer = gnf("tTodoList");
+    // tTodoList doesn't have any markup itself, it just repeatedly calls tTodoItem.
     return map(model.visible(), item => tTodoItem(namer, item));
   };
+  // when any of these messages are received, update the to-do list
   on(
     TOPIC.ITEMS_LOADED,
     TOPIC.BULK_STATUS_CHANGE,
@@ -142,38 +165,56 @@
     () => update("ul.todo-list", tTodoList)
   );
 
-  // Todo Item
+  /*
+    Component: Todo Item. The App's most interactive component. Using this component users can:
+    1. Toggle the item's status (Completed/Active).
+    2. Change the item's text
+    3. Remove the item (by changing the text to an empty string)
+    4. Remove the item by clicking the Remove button.
+  */
   function tTodoItem(nf, todo) {
+    /*
+      Controller code for tTodoItem
+     */
     let label, input, listItem;
     let isCanceled = false;
+    // trigger a blur event if the user presses Enter
     const doneOnEnter = nf(input => {
       if (event.keyCode == KEY.ENTER) input.blur();
     });
+    // trigger a blur event if the user presses Esc
     const cancelOnEsc = nf(input => {
       if (event.keyCode == KEY.ESCAPE) {
         isCanceled = true;
         input.blur();
       }
     });
-    const maybeSave = nf(input => {
+    // update model if user didn't press Esc
+    const maybeUpdate = nf(input => {
       listItem.classList.remove("editing");
       if (isCanceled) return;
       var value = input.value.trim();
       if (value.length) {
+        // change to-do item's text if length > 0
         model.setText(todo, value);
         label.innerText = value;
       } else {
+        // otherwise remove the item (text is '')
         model.remove(todo);
       }
     });
+    // go into editing mode when user double-clicks label
     const edit = nf(pLabel => {
       label = pLabel;
       listItem = label.parentElement.parentElement;
+      // CSS is used to hide the label and show the input
       listItem.classList.add("editing");
       input = qs("input.edit", listItem);
       input.focus();
     });
-
+    /*
+      View for tTodoItem. Note the use of ES6 Template Literals.
+     */
     return `
     <li class="${todo.done ? "completed" : ""}">
       <div class="view">
@@ -186,14 +227,14 @@
                 onclick="${nf(() => model.remove(todo))}()"></button>
       </div>
       <input class="edit"
-             onblur="${maybeSave}(this)"
+             onblur="${maybeUpdate}(this)"
              onkeypress="${doneOnEnter}(this)" 
              onkeyup="${cancelOnEsc}(this)"
              value="${todo.text}"/>
     </li>`;
   }
 
-  // Items remaining
+  // Component: Items remaining
   const tItemsLeft = () => `${model.remaining().length} Items Left`;
   on(
     TOPIC.ITEMS_LOADED,
@@ -204,6 +245,7 @@
     () => update(".todo-count", tItemsLeft)
   );
 
+  // Component: Clear Completed button
   const tClearCompleted = () => {
     var completed = model.completed();
     if (completed.length > 0) {
@@ -225,40 +267,23 @@
     () => update("#clearCompleted", tClearCompleted)
   );
 
-  // Filter links
+  // Component: Filter links.
   const tFilterList = () => `
     ${tFilterItem("#/", VISIBILITY.ALL)}
     ${tFilterItem("#/active", VISIBILITY.ACTIVE)}
     ${tFilterItem("#/completed", VISIBILITY.COMPLETED)}
   `;
-  // Filter link
+  // Component: Filter link
   const tFilterItem = (href, type) => `
   <li>
-    <a href="${href}" 
-       class="${model.visibility() == type ? "selected" : ""}" 
-       onclick="${onVisibilityChange}('${type}')">${type}</a>
+    <a href="${href}"
+       class="${model.visibility() == type ? "selected" : ""}">${type}</a>
   </li>`;
-
   on(TOPIC.ITEMS_LOADED, TOPIC.VISIBILITY_CHANGED, () => {
     update("ul.filters", tFilterList);
   });
 
-  // ------------------------------------------------------------------------
-  // Initialise App
-  // ------------------------------------------------------------------------
-
-  model = new Model();
-  const onVisibilityChange = gnf(model.visibility);
-  // Handle new ToDo addition
-  qs("input.new-todo").onchange = function() {
-    let text = this.value;
-    if (text.trim().length == 0) {
-      return;
-    }
-    model.add({ text: text, done: false });
-    this.value = "";
-  };
-
+  // Component: Toggle-All checkbox
   const toggleAll = qs("input.toggle-all");
   toggleAll.onchange = function() {
     if (this.checked) {
@@ -278,13 +303,36 @@
     }
   );
 
+  // Component: New To-Do input field
+  qs("input.new-todo").onchange = function() {
+    let text = this.value;
+    if (text.trim().length == 0) {
+      return;
+    }
+    model.add({ text: text, done: false });
+    this.value = "";
+  };
+
+  // set up client-side routes for visibility filtering
   const routes = {
     active: () => model.visibility("Active"),
     completed: () => model.visibility("Completed")
   };
-  let param = location.hash.split("/")[1];
-  let action = routes[param];
-  if (action) {
+
+  // route based on hash
+  const routeByHash = () => {
+    let param = location.hash.split("/")[1];
+    let action = routes[param] || (() => model.visibility("All"));
     action();
-  }
+  };
+  exports.onhashchange = routeByHash;
+
+  /*
+    Initialise the Application
+  */
+
+  // create a new Model object
+  model = new Model();
+  // update visibility based on location hash
+  routeByHash();
 })(window);
