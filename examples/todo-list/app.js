@@ -1,18 +1,25 @@
 (function(exports) {
   "use strict";
+
+  // short-hand for icky functions
   let { gnf, update, map } = icky;
+
+  // short-hand for querySelector - default is document.querySelector
   const qs = (selector, el) =>
     el ? el.querySelector(selector) : document.querySelector(selector);
 
+  // short-hand for subscribing to topics
   const on = (...args) => {
     const callback = args.pop();
     args.forEach(topic => PubSub.subscribe(topic, callback));
   };
 
+  // constants used throughout the rest of the code
   const KEY = {
     ENTER: 13,
     ESCAPE: 27
   };
+  // topics used Model and Controllers
   const TOPIC = {
     ITEMS_LOADED: "todos/itemsLoaded",
     ITEM_CHANGED: "todos/itemChanged",
@@ -28,10 +35,10 @@
     COMPLETED: "Completed"
   };
 
-  // ------------------------------------------------------------------------
-  // Model
-  // ------------------------------------------------------------------------
+  // Model object responsible for encapsulating changes to the to-do list
+  // Stored in localStorage's "todos" variable by default
   function Model(name = "todos") {
+    // visibility filter function
     const visible = item => {
       switch (visibility) {
         case VISIBILITY.ALL:
@@ -42,19 +49,26 @@
           return !item.done;
       }
     };
+    // load app state from localStorage or init if not present.
     let { todos, visibility } = JSON.parse(localStorage.getItem(name)) || {
       todos: [],
       visibility: VISIBILITY.ALL
     };
-    setTimeout(() => PubSub.publish(TOPIC.ITEMS_LOADED), 1);
+    // notify listeners that model is ready
+    setTimeout(() => PubSub.publish(TOPIC.ITEMS_LOADED), 0);
 
+    // model is saved to localStorage - save() is private to the model.
     const save = () => {
       localStorage.setItem(name, JSON.stringify({ todos, visibility }));
     };
 
+    // Model's public functions
     return {
+      // toggle the status (done) of a to-do item
+      // works for both single items and arrays of items.
       toggle: todo => {
         if (todo.constructor == Array) {
+          // if it's an array then send a single notification to listeners
           todo.map(item => (item.done = !item.done));
           save();
           PubSub.publish(TOPIC.BULK_STATUS_CHANGE, todo);
@@ -65,22 +79,26 @@
           PubSub.publish(TOPIC.ITEM_STATUS_CHANGED, { o: old, n: todo });
         }
       },
+      // change the text for a to-do item
       setText: (todo, text) => {
         const old = { ...todo };
         todo.text = text;
         save();
         PubSub.publish(TOPIC.ITEM_CHANGED, { o: old, n: todo });
       },
+      // add a new to-do item
       add: todo => {
         let result = todos.push(todo);
         save();
         PubSub.publish(TOPIC.ITEM_ADDED, result);
       },
+      // remove a to-do item
       remove: todo => {
         todos.splice(todos.indexOf(todo), 1);
         save();
         PubSub.publish(TOPIC.ITEM_REMOVED, todo);
       },
+      // change the application's visibility option (All, Active or Completed)
       visibility: v => {
         if (v) {
           visibility = v;
@@ -90,13 +108,17 @@
           return visibility;
         }
       },
+      // get a list of visible items
       visible: () => todos.filter(visible),
+      // get a list of remaining items
       remaining: () => todos.filter(item => !item.done),
+      // get a list of completed items
       completed: () => todos.filter(item => item.done),
+      // get a list of all items
       all: () => [...todos]
     };
   }
-
+  // declare model variable used throughout rest of code.
   let model = null;
 
   // ------------------------------------------------------------------------
