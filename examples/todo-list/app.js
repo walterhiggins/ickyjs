@@ -1,3 +1,8 @@
+//
+// This example application is based on the popular ToDoMVC application.
+// It is functionally identically (to the best of my knowledge) to the
+// ES6 Vanilla version and uses the same CSS stylesheet and initial markup.
+//
 (function(exports) {
   "use strict";
 
@@ -35,10 +40,9 @@
     COMPLETED: "Completed"
   };
 
-  /*
-    The Model object is responsible for encapsulating changes to the to-do list.
-    Stored in localStorage's "todos" variable by default.
-  */
+  // ## Model
+  // The Model object is responsible for encapsulating changes to the to-do list.
+  // Stored in localStorage's "todos" variable by default.
   function Model(name = "todos") {
     // visibility filter function
     const visible = item => {
@@ -123,33 +127,31 @@
   // declare model variable used throughout rest of code.
   let model = null;
 
-  /*
-    The to-do list application is composed of distinct components which need
-    to be updated when the user interacts with the app. These components are:
+  // ## Components
+  // The to-do list application is composed of distinct components which need
+  // to be updated when the user interacts with the app. These components are:
+  //
+  // 1. The input field for adding new to-do items
+  // 2. The list of to-do items each of which have
+  //    2.1 A Checkbox to mark the item as completed (this can be toggled on and off)
+  //    2.2 A Button to remove the item (appears on hover)
+  //    2.3 A Label with the text which when double-clicked becomes an editable input field.
+  // 3. A Checkbox to mark ALL items as completed or Active.
+  // 4. A Label showing a count of completed items.
+  // 5. A List of hyperlinks in the footer which will show either All, Active or Completed items.
+  // 6. A Button to Remove all completed items (which only appears if there are >1 completed items)
+  //
+  //  Many components are constructed by invoking a function which returns a string of HTML.
+  //  Constructing strings of HTML is now easier in ES6 thanks to Template Literals.
+  //
 
-    1. The input field for adding new to-do items
-    2. The list of to-do items each of which have
-       2.1 A Checkbox to mark the item as completed (this can be toggled on and off)
-       2.2 A Button to remove the item (appears on hover)
-       2.3 A Label with the text which when double-clicked becomes an editable input field.
-    3. A Checkbox to mark ALL items as completed or Active.
-    4. A Label showing a count of completed items.
-    5. A List of hyperlinks in the footer which will show either All, Active or Completed items.
-    6. A Button to Remove all completed items (which only appears if there are >1 completed items)
-
-    Many components are constructed by invoking a function which returns a string of HTML.
-    Constructing strings of HTML is now easier in ES6 thanks to Template Literals.
-   */
-
-  // Component: Todo List
+  // ### Component: Todo List
   const tTodoList = () => {
-    /*
-      The todo list can potentially create a lot of DOM elements each with many event handlers.
-      When using the gnf() function to allocate global names to the event-handler functions, the
-      functions are referenced from the global window.icky.namespaces.functions object.
-      To avoid memory leaks construct a new dedicated namespace and naming function which will 
-      be torn-down and reconstructed whenever this function is called.
-    */
+    //  The todo list can potentially create a lot of DOM elements each with many event handlers.
+    //  When using the gnf() function to allocate global names to the event-handler functions, the
+    //  functions are referenced from the global window.icky.namespaces.functions object.
+    //  To avoid memory leaks construct a new dedicated namespace and naming function which will
+    //  be torn-down and reconstructed whenever this function is called.
     let namer = gnf("tTodoList");
     // tTodoList doesn't have any markup itself, it just repeatedly calls tTodoItem.
     return map(model.visible(), item => tTodoItem(namer, item));
@@ -165,17 +167,14 @@
     () => update("ul.todo-list", tTodoList)
   );
 
-  /*
-    Component: Todo Item. The App's most interactive component. Using this component users can:
-    1. Toggle the item's status (Completed/Active).
-    2. Change the item's text
-    3. Remove the item (by changing the text to an empty string)
-    4. Remove the item by clicking the Remove button.
-  */
+  // ### Component: Todo Item.
+  // The App's most interactive component. Using this component users can:
+  // 1. Toggle the item's status (Completed/Active).
+  // 2. Change the item's text
+  // 3. Remove the item (by changing the text to an empty string)
+  // 4. Remove the item by clicking the Remove button.
   function tTodoItem(nf, todo) {
-    /*
-      Controller code for tTodoItem
-     */
+    // #### Controller code for tTodoItem
     let label, input, listItem;
     let isCanceled = false;
     // trigger a blur event if the user presses Enter
@@ -212,9 +211,8 @@
       input = qs("input.edit", listItem);
       input.focus();
     });
-    /*
-      View for tTodoItem. Note the use of ES6 Template Literals.
-     */
+    // #### View for tTodoItem.
+    // Note the use of ES6 Template Literals.
     return `
     <li class="${todo.done ? "completed" : ""}">
       <div class="view">
@@ -234,7 +232,7 @@
     </li>`;
   }
 
-  // Component: Items remaining
+  // ### Component: Items remaining
   const tItemsLeft = () => `${model.remaining().length} Items Left`;
   on(
     TOPIC.ITEMS_LOADED,
@@ -245,7 +243,7 @@
     () => update(".todo-count", tItemsLeft)
   );
 
-  // Component: Clear Completed button
+  // ### Component: Clear Completed button
   const tClearCompleted = () => {
     var completed = model.completed();
     if (completed.length > 0) {
@@ -267,13 +265,13 @@
     () => update("#clearCompleted", tClearCompleted)
   );
 
-  // Component: Filter links.
+  // ### Component: Filter links.
   const tFilterList = () => `
     ${tFilterItem("#/", VISIBILITY.ALL)}
     ${tFilterItem("#/active", VISIBILITY.ACTIVE)}
     ${tFilterItem("#/completed", VISIBILITY.COMPLETED)}
   `;
-  // Component: Filter link
+  // ### Component: Filter link
   const tFilterItem = (href, type) => `
   <li>
     <a href="${href}"
@@ -283,7 +281,7 @@
     update("ul.filters", tFilterList);
   });
 
-  // Component: Toggle-All checkbox
+  // ### Component: Toggle-All checkbox
   const toggleAll = qs("input.toggle-all");
   toggleAll.onchange = function() {
     if (this.checked) {
@@ -303,7 +301,7 @@
     }
   );
 
-  // Component: New To-Do input field
+  // ### Component: New To-Do input field
   qs("input.new-todo").onchange = function() {
     let text = this.value;
     if (text.trim().length == 0) {
@@ -313,6 +311,7 @@
     this.value = "";
   };
 
+  // ## Routing
   // set up client-side routes for visibility filtering
   const routes = {
     active: () => model.visibility("Active"),
@@ -327,9 +326,7 @@
   };
   exports.onhashchange = routeByHash;
 
-  /*
-    Initialise the Application
-  */
+  // ## Initialise the App
 
   // create a new Model object
   model = new Model();
