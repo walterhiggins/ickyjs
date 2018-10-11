@@ -1,0 +1,30 @@
+{
+  "name": "ickyjs",
+  "version": "1.0.0",
+  "description": "A tiny ES6 library for simple web apps",
+  "main": "icky.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples"
+  },
+  "scripts": {
+    "docco": "node_modules/docco/bin/docco -c custom.css icky.js && mv docs/icky.html docs/index.html",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/walterhiggins/ickyjs.git"
+  },
+  "keywords": [
+    "es6"
+  ],
+  "author": "Walter Higgins",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/walterhiggins/ickyjs/issues"
+  },
+  "homepage": "https://github.com/walterhiggins/ickyjs#readme",
+  "devDependencies": {
+    "docco": "^0.8.0"
+  }
+}

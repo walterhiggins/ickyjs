@@ -37,8 +37,8 @@
       throw new Error(errMsg);
     }
   };
-  // icky.gnf()
-  // ----------
+  // icky.gnf( function )
+  // --------------------
   // app.js
   // ```javascript
   // const cCustomButton = (person) => {
@@ -70,8 +70,8 @@
     }
   };
 
-  // icky.map()
-  // ----------
+  // icky.map( array, function)
+  // --------------------------
   // app.js
   // ```javascript
   // ...
@@ -87,8 +87,8 @@
   // ```
   icky.map = (array, fn) => array.map(fn).join("");
   //
-  // icky.update()
-  // -------------
+  // icky.update( querySelector, function)
+  // -------------------------------------
   // index.html
   // ```html
   // <html>
@@ -112,8 +112,15 @@
 
   // Wait? Is that it?
   // -----------------
-  // Yes. If you want to see more icky.js in action see the [todo-list example][tde].
+  // Yes. If you want to see more icky.js in action see the [todo-list example][tde] or
+  // visit the [github repo][repo].
   //
-  // [tde]: examples/todo-list/index.html
+  // &copy; Walter Higgins 2018 [@walter][tw]
+  //
+  //
+  // [tde]: examples/todo-list/
+  // [repo]: https://github.com/walterhiggins/ickyjs
+  // [tw]: https://twitter.com/walter
+  //
   exports.icky = icky;
 })(window);
