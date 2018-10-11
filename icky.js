@@ -79,7 +79,7 @@
   // const cCustomButtonList = () => {
   //   return `
   //   <ol>
-  //     ${map(names, (name) => `
+  //     ${icky.map(names, (name) => `
   //     <li>${cCustomButton(name)}</li>
   //     `)}
   //   </ol>`;
