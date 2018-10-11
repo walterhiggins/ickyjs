@@ -56,14 +56,12 @@
       }
     };
     // load app state from localStorage or init if not present.
-    let todos = [];
-    let visibility = VISIBILITY.ALL;
+    let todos = [],
+      visibility = VISIBILITY.ALL,
+      saved = JSON.parse(localStorage.getItem(name));
 
-    let saved = JSON.parse(localStorage.getItem(name));
     if (saved) {
       todos = saved.todos;
-    }
-    if (saved) {
       visibility = saved.visibility;
     }
     // notify listeners that model is ready
