@@ -112,13 +112,17 @@
 
   // Wait? Is that it?
   // -----------------
-  // Yes. If you want to see more icky.js in action see the [todo-list example][tde] or
-  // visit the [github repo][repo].
+  // Yes. If you want to see more icky.js in action:
+  //
+  // * See the above explanatory code [in action][cp1]
+  // * See the [todo-list example][tde]
+  // * Visit the [github repo][repo].
   //
   // &copy; Walter Higgins 2018 [@walter][tw]
   //
   //
   // [tde]: examples/todo-list/
+  // [cp1]: https://codepen.io/walterhiggins/pen/JmJLvX/?editors=1011
   // [repo]: https://github.com/walterhiggins/ickyjs
   // [tw]: https://twitter.com/walter
   //
