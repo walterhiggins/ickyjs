@@ -60,10 +60,10 @@
     let visibility = VISIBILITY.ALL;
 
     let saved = JSON.parse(localStorage.getItem(name));
-    if (saved.todos) {
+    if (saved) {
       todos = saved.todos;
     }
-    if (saved.visibility) {
+    if (saved) {
       visibility = saved.visibility;
     }
     // notify listeners that model is ready
