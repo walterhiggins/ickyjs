@@ -110,5 +110,9 @@
     else console.error(`icky.js error: could not find ${view} element`);
   };
 
+  // Wait? Is that it?
+  // -----------------
+  // Yes. If you want to see more icky.js in action see the [todo-list example][tde]
+  // [tde]: examples/todo-list/index.html
   exports.icky = icky;
 })(window);
