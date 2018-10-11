@@ -56,10 +56,16 @@
       }
     };
     // load app state from localStorage or init if not present.
-    let { todos, visibility } = JSON.parse(localStorage.getItem(name)) || ({
-      todos: [],
-      visibility: VISIBILITY.ALL
-    });
+    let todos = [];
+    let visibility = VISIBILITY.ALL;
+
+    let saved = JSON.parse(localStorage.getItem(name));
+    if (saved.todos) {
+      todos = saved.todos;
+    }
+    if (saved.visibility) {
+      visibility = saved.visibility;
+    }
     // notify listeners that model is ready
     setTimeout(() => PubSub.publish(TOPIC.ITEMS_LOADED), 0);
 
