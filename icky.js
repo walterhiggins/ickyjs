@@ -8,7 +8,7 @@
 //
 // * DOM manipulation in Javascript using the DOM API is hard.
 // * On the other hand String construction using ES6 Template Literals is easy.
-// * Assigning a string to an element's `.innerHTML` property will not open the gates to hell ;-)
+// * Setting an element's `.innerHTML` property will not open the gates to hell ;-)
 //
 // If you disagree with any of these assumptions (especially the last one) you should probably not
 // use this library.
