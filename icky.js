@@ -7,7 +7,7 @@
 // is based on a couple of assumptions:
 //
 // * DOM manipulation in Javascript using the DOM API is hard.
-// * On the other hand String construction using ES6 Template Literals is easy.
+// * Constructing HTML Strings using ES6 Template Literals is easy.
 // * Setting an element's `.innerHTML` property will not open the gates to hell ;-)
 //
 // If you disagree with any of these assumptions (especially the last one) you should probably not
