@@ -171,6 +171,18 @@
     () => update("ul.todo-list", tTodoList)
   );
 
+  // trigger a blur event if the user presses Enter
+  const onKeyPressItemEdit = gnf(input => {
+    if (event.keyCode == KEY.ENTER) input.blur();
+  });
+  // trigger a blur event if the user presses Esc
+  const onKeyUpItemEdit = gnf(input => {
+    if (event.keyCode == KEY.ESCAPE) {
+      input.dataset.isCanceled = true;
+      input.blur();
+    }
+  });
+
   // ### Component: Todo Item.
   // The App's most interactive component. Using this component users can:
   // 1. Toggle the item's status (Completed/Active).
@@ -180,22 +192,10 @@
   function tTodoItem(nf, todo) {
     // #### Controller code for tTodoItem
     let label, input, listItem;
-    let isCanceled = false;
-    // trigger a blur event if the user presses Enter
-    const doneOnEnter = nf(input => {
-      if (event.keyCode == KEY.ENTER) input.blur();
-    });
-    // trigger a blur event if the user presses Esc
-    const cancelOnEsc = nf(input => {
-      if (event.keyCode == KEY.ESCAPE) {
-        isCanceled = true;
-        input.blur();
-      }
-    });
     // update model if user didn't press Esc
-    const maybeUpdate = nf(input => {
+    const onBlurItemEdit = nf(input => {
       listItem.classList.remove("editing");
-      if (isCanceled) return;
+      if (input.dataset.isCanceled) return;
       var value = input.value.trim();
       if (value.length) {
         // change to-do item's text if length > 0
@@ -229,9 +229,9 @@
                 onclick="${nf(() => model.remove(todo))}()"></button>
       </div>
       <input class="edit"
-             onblur="${maybeUpdate}(this)"
-             onkeypress="${doneOnEnter}(this)" 
-             onkeyup="${cancelOnEsc}(this)"
+             onblur="${onBlurItemEdit}(this)"
+             onkeypress="${onKeyPressItemEdit}(this)" 
+             onkeyup="${onKeyUpItemEdit}(this)"
              value="${todo.text}"/>
     </li>`;
   }
@@ -248,19 +248,15 @@
   );
 
   // ### Component: Clear Completed button
-  const tClearCompleted = () => {
-    var completed = model.completed();
-    if (completed.length > 0) {
-      let onClick = gnf(() => {
-        completed.forEach(model.remove);
-      });
-      return `
-      <button class="clear-completed" 
-              onclick="${onClick}()">Clear completed</a>`;
-    } else {
-      return ``;
-    }
-  };
+  const onClickClearCompleted = gnf(() => {
+    model.completed().forEach(model.remove);
+  });
+  const tClearCompleted = () => `
+  <button class="clear-completed ${model.completed().length ? "" : "hidden"}" 
+          onclick="${onClickClearCompleted}()">
+    Clear completed
+  </button>`;
+
   on(
     TOPIC.ITEMS_LOADED,
     TOPIC.BULK_STATUS_CHANGE,
