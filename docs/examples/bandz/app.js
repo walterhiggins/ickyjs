@@ -1,18 +1,34 @@
 let { gnf, update, map } = icky;
+let qs = (sel, el) =>
+  el ? el.querySelector(sel) : document.querySelector(sel);
 
-const tSearch = (placeholder, callback) => `
+const tSearch = (placeholder, callback) => {
+  let pdiv = null;
+  let icon = null;
+  let wrappedOnChange = gnf(input => {
+    pdiv = input.parentNode;
+    icon = qs("span.icon", pdiv);
+    pdiv.classList.add("is-loading");
+    icon.classList.add("is-invisible");
+    callback(input.value).then(() => {
+      pdiv.classList.remove("is-loading");
+      icon.classList.remove("is-invisible");
+    });
+  });
+  return `
 <div class="field">
   <label class="label">${placeholder}</label>
   <div class="control has-icons-right">
     <input class="input"
            type="text"
            placeholder="${placeholder}"
-           onchange="${gnf(callback)}(this.value)"/>
+           onchange="${wrappedOnChange}(this)"/>
     <span class="icon is-small is-right">
       <i class="fas fa-search"></i>
     </span>
   </div>
-</div>`;
+ </div>`;
+};
 
 const EXPIRES_DAY = 60 * 60 * 24;
 
@@ -45,7 +61,7 @@ const ns = (url, expires) => {
 
 function searchByBandname(bandName) {
   bandName = encodeURIComponent(bandName.trim().toLowerCase());
-  ns(
+  return ns(
     `https://musicbrainz.org/ws/2/artist?query=${bandName}&fmt=json`,
     EXPIRES_DAY
   ).then(results => {
