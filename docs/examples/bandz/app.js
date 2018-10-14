@@ -1,11 +1,18 @@
 let { gnf, update, map } = icky;
 
 const tSearch = (placeholder, callback) => `
-  <span class="search">
-    <input placeholder="${placeholder}"
-           onchange="${gnf(callback)}(this.value)">
-    <i class="fas fa-search"></i>
-  </span>`;
+<div class="field">
+  <label class="label">${placeholder}</label>
+  <div class="control has-icons-right">
+    <input class="input"
+           type="text"
+           placeholder="${placeholder}"
+           onchange="${gnf(callback)}(this.value)"/>
+    <span class="icon is-small is-right">
+      <i class="fas fa-search"></i>
+    </span>
+  </div>
+</div>`;
 
 const EXPIRES_DAY = 60 * 60 * 24;
 
@@ -95,7 +102,7 @@ function searchBySong(bandName) {}
 update(
   "#root",
   () => `
-  <h1><i class="fas fa-headphones"></i>Bandz</h1>
+  <h1 class="title"><i class="fas fa-headphones"></i> Bandz</h1>
   <p>${tSearch("Search Band", searchByBandname)}</p>
   <p>${tSearch("Search Song", searchBySong)}</p>
   <div id="results"></div>`
