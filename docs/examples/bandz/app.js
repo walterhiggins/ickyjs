@@ -1,12 +1,21 @@
 let { gnf, update, map } = icky;
-let qs = (sel, el) =>
-  el ? el.querySelector(sel) : document.querySelector(sel);
+let qs = (sel, el) => (el ? el.querySelector(sel) : document.querySelector(sel));
 let tc = dict => {
-  Object.keys(dict).map(key =>
-    dict[key].forEach(el => el.classList.toggle(key))
-  );
+  Object.keys(dict).map(key => dict[key].forEach(el => el.classList.toggle(key)));
   return () => tc(dict);
 };
+
+const dismissNotification = gnf(btn => {
+  let notification = btn.parentNode;
+  let container = notification.parentNode;
+  container.removeChild(notification);
+});
+const cNotification = (msg, type) => `
+<div class="notification ${type}">
+  <button onclick="${dismissNotification}(this)" class="delete"></button>
+  <span>${msg}</span>
+</div>`;
+
 const cInputSearch = (placeholder, promiseFn) => {
   let wrappedOnChange = gnf(input => {
     if (input.value.trim().length == 0) return;
@@ -14,7 +23,13 @@ const cInputSearch = (placeholder, promiseFn) => {
       "is-loading": [input.parentNode],
       "is-invisible": [qs("span.icon", input.parentNode)]
     });
-    promiseFn(input.value).then(loadingComplete);
+    promiseFn(input.value)
+      .then(loadingComplete)
+      .catch(error => {
+        loadingComplete();
+        let errorEl = qs("div[data-type='error']", input.parentNode.parentNode);
+        errorEl.innerHTML = cNotification(error, "is-danger");
+      });
   });
   return `
 <div class="field">
@@ -28,13 +43,14 @@ const cInputSearch = (placeholder, promiseFn) => {
       <i class="fas fa-search"></i>
     </span>
   </div>
- </div>`;
+  <div data-type="error"></error>  
+  </div>`;
 };
 
 const EXPIRES_DAY = 60 * 60 * 24;
 
-/* nice search (don't hit musicbrainz API too frequently) */
-const ns = (url, expires) => {
+/* nice fetch (fetch from localStorage if not stale) */
+const niceFetch = (url, expires) => {
   function get() {
     return fetch(url)
       .then(response => response.json())
@@ -62,7 +78,7 @@ const ns = (url, expires) => {
 
 function searchByBandname(bandName) {
   bandName = encodeURIComponent(bandName.trim().toLowerCase());
-  return ns(
+  return niceFetch(
     `https://musicbrainz.org/ws/2/artist?query=${bandName}&fmt=json`,
     EXPIRES_DAY
   ).then(results => {
@@ -72,10 +88,7 @@ function searchByBandname(bandName) {
 function showBandResults(results) {
   return `
   <ul>
-    ${map(
-      results.artists.filter(byTaggedArtist),
-      artist => `<li>${showResult(artist)}</li>`
-    )}
+    ${map(results.artists.filter(byTaggedArtist), artist => `<li>${showResult(artist)}</li>`)}
   </ul>`;
 }
 function byTaggedArtist(artist) {
