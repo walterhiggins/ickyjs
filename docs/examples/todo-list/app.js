@@ -10,8 +10,7 @@
   let { gnf, update, map } = icky;
 
   // short-hand for querySelector - default is document.querySelector
-  const qs = (selector, el) =>
-    el ? el.querySelector(selector) : document.querySelector(selector);
+  const qs = (selector, el) => (el ? el.querySelector(selector) : document.querySelector(selector));
 
   // short-hand for subscribing to topics
   const on = (...args) => {
@@ -290,16 +289,9 @@
       model.toggle(model.completed());
     }
   };
-  on(
-    TOPIC.ITEMS_LOADED,
-    TOPIC.ITEM_STATUS_CHANGED,
-    TOPIC.ITEM_REMOVED,
-    TOPIC.ITEM_ADDED,
-    () => {
-      toggleAll.checked =
-        model.all().length > 0 && model.remaining().length == 0;
-    }
-  );
+  on(TOPIC.ITEMS_LOADED, TOPIC.ITEM_STATUS_CHANGED, TOPIC.ITEM_REMOVED, TOPIC.ITEM_ADDED, () => {
+    toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
+  });
 
   // ### Component: New To-Do input field
   qs("input.new-todo").onchange = function() {
