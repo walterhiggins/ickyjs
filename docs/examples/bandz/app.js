@@ -1,19 +1,20 @@
 let { gnf, update, map } = icky;
 let qs = (sel, el) =>
   el ? el.querySelector(sel) : document.querySelector(sel);
-
-const tSearch = (placeholder, callback) => {
-  let pdiv = null;
-  let icon = null;
+let tc = dict => {
+  Object.keys(dict).map(key =>
+    dict[key].forEach(el => el.classList.toggle(key))
+  );
+  return () => tc(dict);
+};
+const cInputSearch = (placeholder, promiseFn) => {
   let wrappedOnChange = gnf(input => {
-    pdiv = input.parentNode;
-    icon = qs("span.icon", pdiv);
-    pdiv.classList.add("is-loading");
-    icon.classList.add("is-invisible");
-    callback(input.value).then(() => {
-      pdiv.classList.remove("is-loading");
-      icon.classList.remove("is-invisible");
+    if (input.value.trim().length == 0) return;
+    let loadingComplete = tc({
+      "is-loading": [input.parentNode],
+      "is-invisible": [qs("span.icon", input.parentNode)]
     });
+    promiseFn(input.value).then(loadingComplete);
   });
   return `
 <div class="field">
@@ -101,9 +102,8 @@ function showResult(artist) {
   return `
   <div class="artist">
     <h2>
-    <i class="fas fa-${artist.type == "Group"
-      ? "users"
-      : "user"}"></i> ${artist.name}
+    <i class="fas fa-${artist.type == "Group" ? "users" : "user"}"></i> 
+    ${artist.name}
     </h2>
     <h3>
       ${begin} - ${end ? end : "&mdash;"} 
@@ -119,7 +119,7 @@ update(
   "#root",
   () => `
   <h1 class="title"><i class="fas fa-headphones"></i> Bandz</h1>
-  <p>${tSearch("Search Band", searchByBandname)}</p>
-  <p>${tSearch("Search Song", searchBySong)}</p>
+  <p>${cInputSearch("Search Band", searchByBandname)}</p>
+  <p>${cInputSearch("Search Song", searchBySong)}</p>
   <div id="results"></div>`
 );
