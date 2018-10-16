@@ -15,9 +15,13 @@
   // short-hand for subscribing to topics
   const on = (...args) => {
     const callback = args.pop();
-    args.forEach(topic => PubSub.subscribe(topic, callback));
+    args.forEach(topic => window.addEventListener(topic, callback));
   };
-
+  const publish = (topic, data, el) => {
+    let emitter = el ? el : document;
+    let event = new CustomEvent(topic, { bubbles: true, detail: data });
+    setTimeout(() => emitter.dispatchEvent(event), 0);
+  };
   // constants used throughout the rest of the code
   const KEY = {
     ENTER: 13,
@@ -64,7 +68,7 @@
       visibility = saved.visibility;
     }
     // notify listeners that model is ready
-    setTimeout(() => PubSub.publish(TOPIC.ITEMS_LOADED), 0);
+    setTimeout(() => publish(TOPIC.ITEMS_LOADED), 0);
 
     // model is saved to localStorage - save() is private to the model.
     const save = () => {
@@ -80,12 +84,12 @@
           // if it's an array then send a single notification to listeners
           todo.map(item => (item.done = !item.done));
           save();
-          PubSub.publish(TOPIC.BULK_STATUS_CHANGE, todo);
+          publish(TOPIC.BULK_STATUS_CHANGE, todo);
         } else {
           const old = { ...todo };
           todo.done = !todo.done;
           save();
-          PubSub.publish(TOPIC.ITEM_STATUS_CHANGED, { o: old, n: todo });
+          publish(TOPIC.ITEM_STATUS_CHANGED, { o: old, n: todo });
         }
       },
       // change the text for a to-do item
@@ -93,26 +97,26 @@
         const old = { ...todo };
         todo.text = text;
         save();
-        PubSub.publish(TOPIC.ITEM_CHANGED, { o: old, n: todo });
+        publish(TOPIC.ITEM_CHANGED, { o: old, n: todo });
       },
       // add a new to-do item
       add: todo => {
         let result = todos.push(todo);
         save();
-        PubSub.publish(TOPIC.ITEM_ADDED, result);
+        publish(TOPIC.ITEM_ADDED, result);
       },
       // remove a to-do item
       remove: todo => {
         todos.splice(todos.indexOf(todo), 1);
         save();
-        PubSub.publish(TOPIC.ITEM_REMOVED, todo);
+        publish(TOPIC.ITEM_REMOVED, todo);
       },
       // change the application's visibility option (All, Active or Completed)
       visibility: v => {
         if (v) {
           visibility = v;
           save();
-          PubSub.publish(TOPIC.VISIBILITY_CHANGED);
+          publish(TOPIC.VISIBILITY_CHANGED);
         } else {
           return visibility;
         }
