@@ -4,6 +4,16 @@ let tc = dict => {
   Object.keys(dict).map(key => dict[key].forEach(el => el.classList.toggle(key)));
   return () => tc(dict);
 };
+// short-hand for subscribing to topics
+const on = (...args) => {
+  const callback = args.pop();
+  args.forEach(topic => window.addEventListener(topic, callback));
+};
+const publish = (topic, data, el) => {
+  let emitter = el ? el : document;
+  let event = new CustomEvent(topic, { bubbles: true, detail: data });
+  setTimeout(() => emitter.dispatchEvent(event), 0);
+};
 
 const dismissNotification = gnf(btn => {
   let notification = btn.parentNode;
@@ -80,15 +90,42 @@ function searchByBandname(bandName) {
   bandName = encodeURIComponent(bandName.trim().toLowerCase());
   return niceFetch(
     `https://musicbrainz.org/ws/2/artist?query=${bandName}&fmt=json`,
-    EXPIRES_DAY
+    EXPIRES_DAY * 30
   ).then(results => {
-    update("#results", () => showBandResults(results));
+    let taggedArtists = results.artists.filter(byTaggedArtist);
+    taggedArtists.forEach(artist => {
+      niceFetch(
+        `http://musicbrainz.org/ws/2/release?artist=${artist.id}&fmt=json`,
+        EXPIRES_DAY * 30
+      ).then(json => {
+        console.log(json);
+        let releases = json.releases.filter(release => {
+          return (
+            release["cover-art-archive"].count > 0 &&
+            release["cover-art-archive"].front &&
+            release.status == "Official"
+          );
+        });
+        artist.releases = releases;
+        releases.forEach(release => {
+          niceFetch(
+            `http://coverartarchive.org/release/${release.id}`,
+            EXPIRES_DAY * 30
+          ).then(coverArt => {
+            let th250 = coverArt.images[0].thumbnails.small;
+            release.thumbnail = th250;
+            publish("artist/release/thumbnail", artist);
+          });
+        });
+      });
+    });
+    update("#results", () => showBandResults(taggedArtists));
   });
 }
-function showBandResults(results) {
+function showBandResults(artists) {
   return `
   <ul>
-    ${map(results.artists.filter(byTaggedArtist), artist => `<li>${showResult(artist)}</li>`)}
+    ${map(artists, artist => `<li>${showResult(artist)}</li>`)}
   </ul>`;
 }
 function byTaggedArtist(artist) {
@@ -124,9 +161,18 @@ function showResult(artist) {
       ${artist.area ? ", " + artist.area.name : ""}
   </h3>
     ${tags.map(tag => `<span class="tag">${tag.name}</span>`)}
+  <div class="thumbnails" data-artist="${artist.id}"></div>
   </div>
   `;
 }
+const cThumbnails = artist => map(artist.releases, release => `<img src="${release.thumbnail}">`);
+on("artist/release/thumbnail", event => {
+  let artist = event.detail;
+  update(`div[data-artist='${artist.id}']`, () => {
+    return cThumbnails(artist);
+  });
+});
+
 function searchBySong(bandName) {}
 update(
   "#root",
