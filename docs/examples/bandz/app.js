@@ -1,6 +1,7 @@
 let { gnf, update, map } = icky;
-let qs = (sel, el) => (el ? el.querySelector(sel) : document.querySelector(sel));
-let tc = dict => {
+const qs = (sel, el) => (el ? el.querySelector(sel) : document.querySelector(sel));
+const euc = encodeURIComponent;
+const tc = dict => {
   Object.keys(dict).map(key => dict[key].forEach(el => el.classList.toggle(key)));
   return () => tc(dict);
 };
@@ -59,40 +60,11 @@ const cInputSearch = (placeholder, promiseFn) => {
 
 const EXPIRES_DAY = 60 * 60 * 24;
 
-/* nice fetch (fetch from localStorage if not stale) */
-const niceFetch = (url, expires) => {
-  function get() {
-    return fetch(url)
-      .then(response => response.json())
-      .then(results => {
-        const now = new Date().getTime();
-        results.fetchTime = now;
-        localStorage.setItem(url, JSON.stringify(results));
-        return results;
-      });
-  }
-  let results = localStorage.getItem(url);
-  if (!results) {
-    return get();
-  }
-  results = JSON.parse(results);
-  const now = new Date().getTime();
-  const fetched = results.fetchTime;
-  if (now - fetched > expires * 1000) {
-    // results are stale
-    return get();
-  } else {
-    return new Promise(resolve => setTimeout(() => resolve(results), 0));
-  }
-};
-
 function searchByBandname(bandName) {
   bandName = encodeURIComponent(bandName.trim().toLowerCase());
-  return niceFetch(
-    `https://musicbrainz.org/ws/2/artist?query=${bandName}&fmt=json`,
-    EXPIRES_DAY * 30
-  ).then(results => {
+  return musicBrainz.searchArtist(bandName, EXPIRES_DAY * 30).then(results => {
     let taggedArtists = results.artists.filter(byTaggedArtist);
+    /*
     taggedArtists.forEach(artist => {
       niceFetch(
         `http://musicbrainz.org/ws/2/release?artist=${artist.id}&fmt=json`,
@@ -119,6 +91,7 @@ function searchByBandname(bandName) {
         });
       });
     });
+*/
     update("#results", () => showBandResults(taggedArtists));
   });
 }
@@ -137,6 +110,44 @@ function byTaggedArtist(artist) {
     return false;
   }
 }
+
+const albumsOnly = releaseGroup => {
+  return releaseGroup["first-release-date"] && releaseGroup["primary-type"] == "Album";
+};
+const byReleaseDate = (a, b) => {
+  if ("" + a["first-release-date"] > "" + b["first-release-date"]) {
+    return 1;
+  }
+  if ("" + a["first-release-date"] == "" + b["first-release-date"]) {
+    return 0;
+  }
+  return -1;
+};
+on("artist/releases", event => {
+  let artist = event.detail.artist,
+    releases = event.detail.releases;
+  artist.releases = releases;
+  update(`div[data-artist='${artist.id}']`, () => discography(artist));
+});
+const discography = artist => {
+  if (!artist.releases) {
+    return ``;
+  }
+  return `
+<h3>Albums</h3>
+<ol>
+  ${map(
+    artist.releases["release-groups"].filter(albumsOnly).sort(byReleaseDate),
+    releaseGroup => `
+  <li>
+    <div class="album-title">${releaseGroup.title}</div>
+    <div class="release-date">${releaseGroup["first-release-date"]}</div>
+  </li>`
+  )}
+</ol>
+  `;
+};
+
 function showResult(artist) {
   let begin = artist["life-span"] ? artist["life-span"].begin : "";
   let end = artist["life-span"] ? artist["life-span"].end : "";
@@ -149,19 +160,28 @@ function showResult(artist) {
     tags = artist.tags;
     tags = tags.sort(byCount).filter(tag => tag.count);
   }
+  let getReleases = gnf(() => {
+    musicBrainz.releasesByArtist(artist.id).then(releases => {
+      publish(`artist/releases`, { artist, releases });
+    });
+  });
   return `
   <div class="artist">
     <h2>
-    <i class="fas fa-${artist.type == "Group" ? "users" : "user"}"></i> 
-    ${artist.name}
+      <a href="#/artist/${artist.id}/${artist.name}" onclick="${getReleases}()">
+        <i class="fas fa-${artist.type == "Group" ? "users" : "user"}"></i> 
+        ${artist.name}
+      </a>
     </h2>
     <h3>
       ${begin} - ${end ? end : "&mdash;"} 
       ${beginArea ? beginArea : ""}
       ${artist.area ? ", " + artist.area.name : ""}
-  </h3>
+    </h3>
     ${tags.map(tag => `<span class="tag">${tag.name}</span>`)}
-  <div class="thumbnails" data-artist="${artist.id}"></div>
+    <div class="discography" data-artist="${artist.id}">
+      ${discography(artist)}
+    </div>
   </div>
   `;
 }
