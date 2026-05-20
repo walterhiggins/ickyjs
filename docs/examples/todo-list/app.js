@@ -14,121 +14,121 @@
 
     // short-hand for subscribing to topics
     const on = (...args) => {
-	const callback = args.pop();
-	args.forEach(topic => window.addEventListener(topic, callback));
+        const callback = args.pop();
+        args.forEach(topic => window.addEventListener(topic, callback));
     };
     const publish = (topic, data, el) => {
-	let emitter = el ? el : document;
-	let event = new CustomEvent(topic, { bubbles: true, detail: data });
-	setTimeout(() => emitter.dispatchEvent(event), 0);
+        let emitter = el ? el : document;
+        let event = new CustomEvent(topic, { bubbles: true, detail: data });
+        setTimeout(() => emitter.dispatchEvent(event), 0);
     };
     // constants used throughout the rest of the code
     const KEY = {
-	ENTER: 13,
-	ESCAPE: 27
+        ENTER: 13,
+        ESCAPE: 27
     };
     // topics used by Model and Controllers
     const TOPIC = {
-	ITEMS_LOADED: "todos/itemsLoaded",
-	ITEM_CHANGED: "todos/itemChanged",
-	ITEM_STATUS_CHANGED: "todos/itemStatusChanged",
-	ITEM_REMOVED: "todos/itemRemoved",
-	ITEM_ADDED: "todos/itemAdded",
-	VISIBILITY_CHANGED: "todos/visibilityChanged",
-	BULK_STATUS_CHANGE: "todos/bulkStatusChange"
+        ITEMS_LOADED: "todos/itemsLoaded",
+        ITEM_CHANGED: "todos/itemChanged",
+        ITEM_STATUS_CHANGED: "todos/itemStatusChanged",
+        ITEM_REMOVED: "todos/itemRemoved",
+        ITEM_ADDED: "todos/itemAdded",
+        VISIBILITY_CHANGED: "todos/visibilityChanged",
+        BULK_STATUS_CHANGE: "todos/bulkStatusChange"
     };
     const VISIBILITY = {
-	ALL: "All",
-	ACTIVE: "Active",
-	COMPLETED: "Completed"
+        ALL: "All",
+        ACTIVE: "Active",
+        COMPLETED: "Completed"
     };
 
     // ## Model
     // The Model object is responsible for encapsulating changes to the to-do list.
     // Stored in localStorage's "todos" variable by default.
     function Model(name = "todos") {
-	// visibility filter function
-	const visible = item => {
-	    switch (visibility) {
+        // visibility filter function
+        const visible = item => {
+            switch (visibility) {
             case VISIBILITY.ALL:
-		return true;
+                return true;
             case VISIBILITY.COMPLETED:
-		return item.done;
+                return item.done;
             case VISIBILITY.ACTIVE:
-		return !item.done;
-	    }
-	};
-	// load app state from localStorage or init if not present.
-	let todos = [],
-	    visibility = VISIBILITY.ALL,
-	    saved = JSON.parse(localStorage.getItem(name));
+                return !item.done;
+            }
+        };
+        // load app state from localStorage or init if not present.
+        let todos = [],
+            visibility = VISIBILITY.ALL,
+            saved = JSON.parse(localStorage.getItem(name));
 
-	if (saved) {
-	    todos = saved.todos;
-	    visibility = saved.visibility;
-	}
-	// notify listeners that model is ready
-	publish(TOPIC.ITEMS_LOADED)
-	// model is saved to localStorage - save() is private to the model.
-	const save = () => {
-	    localStorage.setItem(name, JSON.stringify({ todos, visibility }));
-	};
+        if (saved) {
+            todos = saved.todos;
+            visibility = saved.visibility;
+        }
+        // notify listeners that model is ready
+        publish(TOPIC.ITEMS_LOADED)
+        // model is saved to localStorage - save() is private to the model.
+        const save = () => {
+            localStorage.setItem(name, JSON.stringify({ todos, visibility }));
+        };
 
-	// Model's public functions
-	return {
-	    // toggle the status (done) of a to-do item
-	    // works for both single items and arrays of items.
-	    toggle: todo => {
-		if (todo.constructor == Array) {
-		    // if it's an array then send a single notification to listeners
-		    todo.map(item => (item.done = !item.done));
-		    save();
-		    publish(TOPIC.BULK_STATUS_CHANGE, todo);
-		} else {
-		    const old = { ...todo };
-		    todo.done = !todo.done;
-		    save();
-		    publish(TOPIC.ITEM_STATUS_CHANGED, { o: old, n: todo });
-		}
-	    },
-	    // change the text for a to-do item
-	    setText: (todo, text) => {
-		const old = { ...todo };
-		todo.text = text;
-		save();
-		publish(TOPIC.ITEM_CHANGED, { o: old, n: todo });
-	    },
-	    // add a new to-do item
-	    add: todo => {
-		let result = todos.push(todo);
-		save();
-		publish(TOPIC.ITEM_ADDED, result);
-	    },
-	    // remove a to-do item
-	    remove: todo => {
-		todos.splice(todos.indexOf(todo), 1);
-		save();
-		publish(TOPIC.ITEM_REMOVED, todo);
-	    },
-	    // change the application's visibility option (All, Active or Completed)
-	    visibility: v => {
-		if (v) {
-		    visibility = v;
-		    save();
-		    publish(TOPIC.VISIBILITY_CHANGED);
-		} else {
-		    return visibility;
-		}
-	    },
-	    // get a list of visible items
-	    visible: () => todos.filter(visible),
-	    // get a list of remaining items
-	    remaining: () => todos.filter(item => !item.done),
-	    // get a list of completed items
-	    completed: () => todos.filter(item => item.done),
-	    // get a list of all items
-	    all: () => [...todos]
-	};
+        // Model's public functions
+        return {
+            // toggle the status (done) of a to-do item
+            // works for both single items and arrays of items.
+            toggle: todo => {
+                if (todo.constructor == Array) {
+                    // if it's an array then send a single notification to listeners
+                    todo.map(item => (item.done = !item.done));
+                    save();
+                    publish(TOPIC.BULK_STATUS_CHANGE, todo);
+                } else {
+                    const old = { ...todo };
+                    todo.done = !todo.done;
+                    save();
+                    publish(TOPIC.ITEM_STATUS_CHANGED, { o: old, n: todo });
+                }
+            },
+            // change the text for a to-do item
+            setText: (todo, text) => {
+                const old = { ...todo };
+                todo.text = text;
+                save();
+                publish(TOPIC.ITEM_CHANGED, { o: old, n: todo });
+            },
+            // add a new to-do item
+            add: todo => {
+                let result = todos.push(todo);
+                save();
+                publish(TOPIC.ITEM_ADDED, result);
+            },
+            // remove a to-do item
+            remove: todo => {
+                todos.splice(todos.indexOf(todo), 1);
+                save();
+                publish(TOPIC.ITEM_REMOVED, todo);
+            },
+            // change the application's visibility option (All, Active or Completed)
+            visibility: v => {
+                if (v) {
+                    visibility = v;
+                    save();
+                    publish(TOPIC.VISIBILITY_CHANGED);
+                } else {
+                    return visibility;
+                }
+            },
+            // get a list of visible items
+            visible: () => todos.filter(visible),
+            // get a list of remaining items
+            remaining: () => todos.filter(item => !item.done),
+            // get a list of completed items
+            completed: () => todos.filter(item => item.done),
+            // get a list of all items
+            all: () => [...todos]
+        };
     }
     // declare model variable used throughout rest of code.
     let model = null;
@@ -153,38 +153,38 @@
 
     // ### Component: Todo List
     const TodoList = () => {
-	//  The todo list can potentially create a lot of DOM elements each with many event handlers.
-	//  When using the gnf() function to allocate global names to the event-handler functions, the
-	//  functions are referenced from the global window.icky.namespaces.functions object.
-	//  To avoid memory leaks construct a new dedicated namespace and naming function which will
-	//  be torn-down and reconstructed whenever this function is called.
-	// TodoList doesn't have any markup itself, it just repeatedly calls TodoItem.
-	const todoFunc = gnf("TodoList");
-	return map(model.visible(), item => TodoItem(item,todoFunc));
+        //  The todo list can potentially create a lot of DOM elements each with many event handlers.
+        //  When using the gnf() function to allocate global names to the event-handler functions, the
+        //  functions are referenced from the global window.icky.namespaces.functions object.
+        //  To avoid memory leaks construct a new dedicated namespace and naming function which will
+        //  be torn-down and reconstructed whenever this function is called.
+        // TodoList doesn't have any markup itself, it just repeatedly calls TodoItem.
+        const todoFunc = gnf("TodoList");
+        return map(model.visible(), item => TodoItem(item,todoFunc));
     };
     // when any of these messages are received, update the to-do list
     on(
-	TOPIC.ITEMS_LOADED,
-	TOPIC.BULK_STATUS_CHANGE,
-	TOPIC.ITEM_REMOVED,
-	TOPIC.ITEM_ADDED,
-	TOPIC.VISIBILITY_CHANGED,
-	(topic) => {
-	    console.log(topic)
-	    update("ul.todo-list", TodoList);
-	}
+        TOPIC.ITEMS_LOADED,
+        TOPIC.BULK_STATUS_CHANGE,
+        TOPIC.ITEM_REMOVED,
+        TOPIC.ITEM_ADDED,
+        TOPIC.VISIBILITY_CHANGED,
+        (topic) => {
+            console.log(topic)
+            update("ul.todo-list", TodoList);
+        }
     );
 
     // trigger a blur event if the user presses Enter
     const onKeyPressItemEdit = gnf(input => {
-	if (event.keyCode == KEY.ENTER) input.blur();
+        if (event.keyCode == KEY.ENTER) input.blur();
     });
     // trigger a blur event if the user presses Esc
     const onKeyUpItemEdit = gnf(input => {
-	if (event.keyCode == KEY.ESCAPE) {
-	    input.dataset.isCanceled = true;
-	    input.blur();
-	}
+        if (event.keyCode == KEY.ESCAPE) {
+            input.dataset.isCanceled = true;
+            input.blur();
+        }
     });
 
     // ### Component: Todo Item.
@@ -194,45 +194,45 @@
     // 3. Remove the item (by changing the text to an empty string)
     // 4. Remove the item by clicking the Remove button.
     function TodoItem(todo,todoFunc) {
-	// #### Controller code for TodoItem
-	let label, input, listItem;
-	// go into editing mode when user double-clicks label
-	const startEditItem = todoFunc(label => {
-	    let listItem = label.parentElement.parentElement;
-	    // CSS is used to hide the label and show the input
-	    listItem.classList.add("editing");
-	    let input = qs("input.edit", listItem);
-	    input.focus();
-	});
-	
-	// update model if user didn't press Esc
-	const endEditItem = todoFunc(input => {
-	    let listItem = input.parentElement;
-	    listItem.classList.remove("editing");
-	    if (input.dataset.isCanceled) return;
-	    var value = input.value.trim();
-	    if (value.length) {
-		// change to-do item's text if length > 0
-		model.setText(todo, value);
-		input.innerText = value;
-		// change the label to match the input value
-		let label = qs("label", listItem);
-		label.innerHTML = value;
-	    } else {
-		// otherwise remove the item (text is '')
-		model.remove(todo);
-	    }
-	});
-	const toggleItem = todoFunc(input => {
-	    console.log(this);
-	    model.toggle(todo);
-	    let listItem = input.parentElement.parentElement;
-	    listItem.className = todo.done?"completed":"";
-	});
+        // #### Controller code for TodoItem
+        let label, input, listItem;
+        // go into editing mode when user double-clicks label
+        const startEditItem = todoFunc(label => {
+            let listItem = label.parentElement.parentElement;
+            // CSS is used to hide the label and show the input
+            listItem.classList.add("editing");
+            let input = qs("input.edit", listItem);
+            input.focus();
+        });
+        
+        // update model if user didn't press Esc
+        const endEditItem = todoFunc(input => {
+            let listItem = input.parentElement;
+            listItem.classList.remove("editing");
+            if (input.dataset.isCanceled) return;
+            var value = input.value.trim();
+            if (value.length) {
+                // change to-do item's text if length > 0
+                model.setText(todo, value);
+                input.innerText = value;
+                // change the label to match the input value
+                let label = qs("label", listItem);
+                label.innerHTML = value;
+            } else {
+                // otherwise remove the item (text is '')
+                model.remove(todo);
+            }
+        });
+        const toggleItem = todoFunc(input => {
+            console.log(this);
+            model.toggle(todo);
+            let listItem = input.parentElement.parentElement;
+            listItem.className = todo.done?"completed":"";
+        });
 
-	// #### View for TodoItem.
-	// Note the use of ES6 Template Literals.
-	return `
+        // #### View for TodoItem.
+        // Note the use of ES6 Template Literals.
+        return `
     <li class="${todo.done ? "completed" : ""}">
       <div class="view">
         <input class="toggle" type="checkbox" ${todo.done ? "checked" : ""} 
@@ -254,17 +254,17 @@
     // ### Component: Items remaining
     const ItemsRemaining = () => `${model.remaining().length} Items Left`;
     on(
-	TOPIC.ITEMS_LOADED,
-	TOPIC.BULK_STATUS_CHANGE,
-	TOPIC.ITEM_STATUS_CHANGED,
-	TOPIC.ITEM_REMOVED,
-	TOPIC.ITEM_ADDED,
-	() => update(".todo-count", ItemsRemaining)
+        TOPIC.ITEMS_LOADED,
+        TOPIC.BULK_STATUS_CHANGE,
+        TOPIC.ITEM_STATUS_CHANGED,
+        TOPIC.ITEM_REMOVED,
+        TOPIC.ITEM_ADDED,
+        () => update(".todo-count", ItemsRemaining)
     );
 
     // ### Component: Clear Completed button
     const onClickClearCompleted = gnf(() => {
-	model.completed().forEach(model.remove);
+        model.completed().forEach(model.remove);
     });
     const ClearCompleted = () => `
   <button class="clear-completed ${model.completed().length ? "" : "hidden"}" 
@@ -273,11 +273,11 @@
   </button>`;
 
     on(
-	TOPIC.ITEMS_LOADED,
-	TOPIC.BULK_STATUS_CHANGE,
-	TOPIC.ITEM_STATUS_CHANGED,
-	TOPIC.ITEM_REMOVED,
-	() => update("#clearCompleted", ClearCompleted)
+        TOPIC.ITEMS_LOADED,
+        TOPIC.BULK_STATUS_CHANGE,
+        TOPIC.ITEM_STATUS_CHANGED,
+        TOPIC.ITEM_REMOVED,
+        () => update("#clearCompleted", ClearCompleted)
     );
 
     // ### Component: Filter links.
@@ -293,51 +293,51 @@
        class="${model.visibility() == type ? "selected" : ""}">${type}</a>
   </li>`;
     on(
-	TOPIC.ITEMS_LOADED,
-	TOPIC.VISIBILITY_CHANGED,
-	() => update("ul.filters", FilterList)
+        TOPIC.ITEMS_LOADED,
+        TOPIC.VISIBILITY_CHANGED,
+        () => update("ul.filters", FilterList)
     );
 
     // ### Component: Toggle-All checkbox
     const toggleAll = qs("input.toggle-all");
     toggleAll.onchange = function() {
-	if (this.checked) {
-	    model.toggle(model.remaining());
-	} else {
-	    model.toggle(model.completed());
-	}
+        if (this.checked) {
+            model.toggle(model.remaining());
+        } else {
+            model.toggle(model.completed());
+        }
     };
     on(
-	TOPIC.ITEMS_LOADED,
-	TOPIC.ITEM_STATUS_CHANGED,
-	TOPIC.ITEM_REMOVED,
-	TOPIC.ITEM_ADDED,
-	() => {
-	    toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
-	});
+        TOPIC.ITEMS_LOADED,
+        TOPIC.ITEM_STATUS_CHANGED,
+        TOPIC.ITEM_REMOVED,
+        TOPIC.ITEM_ADDED,
+        () => {
+            toggleAll.checked = model.all().length > 0 && model.remaining().length == 0;
+        });
 
     // ### Component: New To-Do input field
     qs("input.new-todo").onchange = function() {
-	let text = this.value;
-	if (text.trim().length == 0) {
-	    return;
-	}
-	model.add({ text: text, done: false });
-	this.value = "";
+        let text = this.value;
+        if (text.trim().length == 0) {
+            return;
+        }
+        model.add({ text: text, done: false });
+        this.value = "";
     };
 
     // ## Routing
     // set up client-side routes for visibility filtering
     const routes = {
-	active: () => model.visibility(VISIBILITY.ACTIVE),
-	completed: () => model.visibility(VISIBILITY.COMPLETED)
+        active: () => model.visibility(VISIBILITY.ACTIVE),
+        completed: () => model.visibility(VISIBILITY.COMPLETED)
     };
 
     // route based on hash
     const routeByHash = () => {
-	let param = location.hash.split("/")[1];
-	let action = routes[param] || (() => model.visibility("All"));
-	action();
+        let param = location.hash.split("/")[1];
+        let action = routes[param] || (() => model.visibility("All"));
+        action();
     };
     exports.onhashchange = routeByHash;
 
